@@ -44,8 +44,10 @@ export class Renderer {
     glContext.cullFace(glContext.BACK)
     glContext.enable(glContext.DEPTH_TEST);
     glContext.depthFunc(glContext.LEQUAL);
+    glContext.enable(glContext.BLEND);
+    glContext.blendFunc(glContext.SRC_ALPHA, glContext.ONE_MINUS_SRC_ALPHA);
 
-    glContext.clearColor(1, 1, 1, 0);
+    glContext.clearColor(0, 0, 0, 0);
     glContext.clear(glContext.COLOR_BUFFER_BIT);
 
     this.#things.forEach(t => {

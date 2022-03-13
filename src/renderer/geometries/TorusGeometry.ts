@@ -26,9 +26,9 @@ export class TorusGeometry extends Geometry {
       for (let i = 0; i < tubularSegments; ++i) {
         const u = i / tubularSegments * Math.PI * 2
         const v = j / radialSegments * Math.PI * 2
-        const x = (radius + tubeRadius * Math.cos(v)) * Math.cos(u)
-        const y = (radius + tubeRadius * Math.cos(v)) * Math.sin(u)
-        const z = tubeRadius * Math.sin(v)
+        const x = (radius + tubeRadius * Math.cos(v) * (1 + Math.cos(u * 3) * 0.3)) * Math.cos(u)
+        const y = (radius + tubeRadius * Math.cos(v) * (1 + Math.sin(u * 4) * 0.2)) * Math.sin(u)
+        const z = tubeRadius * Math.sin(v) * (1 + Math.sin(u * 5) * 0.2)
         ring.push({ index, position: new Vector3(x, y, z) })
         index += 1
       }
