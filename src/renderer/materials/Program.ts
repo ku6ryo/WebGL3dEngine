@@ -78,7 +78,7 @@ export class Program {
     return location
   }
 
-  protected setTexture(name: string, image: HTMLCanvasElement | ImageBitmap | HTMLVideoElement | HTMLImageElement) {
+  protected setTextureValue(name: string, image: HTMLCanvasElement | ImageBitmap | HTMLVideoElement | HTMLImageElement) {
     const location = this.getTextureLocation(name)
     const texture = this.createTexture(image)
     const gl = this.#context

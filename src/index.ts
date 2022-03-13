@@ -11,6 +11,9 @@ import { ConeGeometry } from "./renderer/geometries/ConeGeometry";
 import { PhongMaterial } from "./renderer/materials/PhongMaterial/PhongMaterial";
 import { DirectionalLight } from "./renderer/lights/DirectionalLight";
 import { SoapBubbleMaterial } from "./renderer/materials/SoapBubbleMaterial/SoapBubbleMaterial";
+import sampleTexUrl from "./crack512x512.png"
+import { PlaneGeometry } from "./renderer/geometries/PlaneGeometry";
+import { TextureMaterial } from "./renderer/materials/TextureMaterial/TextureMaterial";
 
 const stats = new Stats()
 document.body.appendChild(stats.dom)
@@ -38,19 +41,35 @@ async function main() {
   camera.setUp(new Vector3(0, 1, 0))
   camera.setProjectionParams(Math.PI / 4, glCanvas.width / glCanvas.height, 0.1, 100)
 
-
   const box = new Thing(new BoxGeometry())
   renderer.addThing(box)
+
+  const light = new DirectionalLight(new Vector3(0, -1, 1), 1)
+  renderer.addDirectionalLight(light)
+  renderer.addDirectionalLight(new DirectionalLight(new Vector3(1, 1, 1), 1))
+
+  const img = new Image()
+  img.src = sampleTexUrl
+  img.onload = () => {
+    const plane = new Thing(new PlaneGeometry())
+    const m = new TextureMaterial()
+    m.setTexture(img)
+    plane.setMaterial(m)
+    plane.setPosition(new Vector3(-1, 0, 0))
+    renderer.addThing(plane)
+  }
+  const plane = new Thing(new PlaneGeometry())
+  const m = new StandardMaterial()
+  m.setColor(new Color(1, 0, 0, 1))
+  plane.setMaterial(m)
+  plane.setPosition(new Vector3(1, 0, 0))
+  renderer.addThing(plane)
 
   const torus = new Thing(new TorusGeometry(0.5, 100, 200))
   // const tMat = new PhongMaterial()
   const tMat = new SoapBubbleMaterial()
   torus.setMaterial(tMat)
   renderer.addThing(torus)
-
-  const light = new DirectionalLight(new Vector3(0, -1, 1), 1)
-  renderer.addDirectionalLight(light)
-  renderer.addDirectionalLight(new DirectionalLight(new Vector3(1, 1, 1), 1))
 
   process()
   async function process () {

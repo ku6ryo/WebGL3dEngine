@@ -1,14 +1,23 @@
+import { Vector2 } from '../math/Vector2';
 import { Vector3 } from '../math/Vector3';
 
 export class Geometry {
 
   #vertices: Vector3[] = []
-  #normals: Vector3[] = []
   #triangles: number[][] = []
+  #normals: Vector3[] = []
+  #uvs: Vector2[] = []
 
-  constructor(vertices: Vector3[], triangles: number[][]) {
+  constructor(vertices: Vector3[], triangles: number[][], uvs?: Vector2[]) {
     this.#vertices = vertices
     this.#triangles = triangles
+    if (uvs) {
+      if (uvs.length === vertices.length) {
+        this.#uvs = uvs
+      } else {
+        throw new Error("uvs.length must be equal to vertices.length")
+      }
+    }
     this.updateNormals()
   }
 
@@ -44,6 +53,15 @@ export class Geometry {
       array.push(v.x)
       array.push(v.y)
       array.push(v.z)
+    })
+    return array
+  }
+
+  getFlatUVs() {
+    const array: number[] = []
+    this.#uvs.forEach((v) => {
+      array.push(v.x)
+      array.push(v.y)
     })
     return array
   }

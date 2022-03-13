@@ -22,7 +22,7 @@ enum SoapBubbleProgramUniform {
 
 class SoapBubbleProgram extends BasicProgram {
 
-  #image: HTMLImageElement | null = null
+  #colorMapImage: HTMLImageElement | null = null
 
   constructor(context: WebGLRenderingContext) {
     super(context, vertexShaderSource, fragmentShaderSource)
@@ -32,7 +32,7 @@ class SoapBubbleProgram extends BasicProgram {
     const img = new Image()
     img.src = LightColorTextureUrl
     img.onload = () => {
-      this.#image = img
+      this.#colorMapImage = img
     }
     img.onerror = () => {
       console.error("SoapBubbleProgram Failed to load image")
@@ -40,7 +40,7 @@ class SoapBubbleProgram extends BasicProgram {
   }
   
   preDraw(camera: Camera, thing: Thing) {
-    if (!this.#image) {
+    if (!this.#colorMapImage) {
       // throw new Error("SoapBubbleProgram Image not loaded")
       return
     }
@@ -52,6 +52,6 @@ class SoapBubbleProgram extends BasicProgram {
       this.getUniformLocation(SoapBubbleProgramUniform.EyeDirection),
       eyeDir.x, eyeDir.y, eyeDir.z
     )
-    this.setTexture(SoapBubbleProgramUniform.LightColorMap, this.#image)
+    this.setTextureValue(SoapBubbleProgramUniform.LightColorMap, this.#colorMapImage)
   }
 }
