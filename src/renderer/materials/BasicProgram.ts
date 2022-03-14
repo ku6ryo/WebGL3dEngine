@@ -18,6 +18,8 @@ enum BasicProgramAttribute {
 
 type BasicProgramOptions = {
   useUv?: boolean,
+  useDirectionalLights?: boolean,
+  useModelInvertMatrix?: boolean,
 }
 
 export class BasicProgram extends Program {
@@ -27,14 +29,18 @@ export class BasicProgram extends Program {
   constructor(gl: WebGLRenderingContext, vertexShaderSource: string, fragmentShaderSource: string, options: BasicProgramOptions = {}) {
     super(gl, vertexShaderSource, fragmentShaderSource)
     this.createUniformLocation(BasicProgramUniform.MVP_MATRIX)
-    this.createUniformLocation(BasicProgramUniform.MI_MATRIX)
-    this.createUniformLocation(BasicProgramUniform.DIRECTIONAL_LIGHTS)
     this.createAttributeLocation(BasicProgramAttribute.POSITION)
     this.createAttributeLocation(BasicProgramAttribute.NORMAL)
 
     this.#options = options
     if (options.useUv) {
       this.createAttributeLocation(BasicProgramAttribute.UV)
+    }
+    if (options.useModelInvertMatrix) {
+      this.createUniformLocation(BasicProgramUniform.MI_MATRIX)
+    }
+    if (options.useDirectionalLights) {
+      this.createUniformLocation(BasicProgramUniform.DIRECTIONAL_LIGHTS)
     }
   }
   
@@ -44,13 +50,6 @@ export class BasicProgram extends Program {
   draw(camera: Camera, thing: Thing, directionalLights: DirectionalLight[]) {
     super.draw(camera, thing, directionalLights)
     const gl = this.getContext()
-
-    const diLights: number[] = []
-    directionalLights.forEach(light => {
-      const dir = light.getDirection()
-      diLights.push(dir.x, dir.y, dir.z, light.getIntensity())
-    })
-    gl.uniform4fv(this.getUniformLocation(BasicProgramUniform.DIRECTIONAL_LIGHTS), diLights)
 
     const geo = thing.getGeometry()
 
@@ -73,7 +72,18 @@ export class BasicProgram extends Program {
     mat4.multiply(uMvpMatrix, uMvpMatrix, mMatrix);
 
     gl.uniformMatrix4fv(this.getUniformLocation(BasicProgramUniform.MVP_MATRIX), false, uMvpMatrix);
-    gl.uniformMatrix4fv(this.getUniformLocation(BasicProgramUniform.MI_MATRIX), false, uMiMatrix);
+    if (this.#options.useModelInvertMatrix) {
+      gl.uniformMatrix4fv(this.getUniformLocation(BasicProgramUniform.MI_MATRIX), false, uMiMatrix);
+    }
+
+    if (this.#options.useDirectionalLights) {
+      const diLights: number[] = []
+      directionalLights.forEach(light => {
+        const dir = light.getDirection()
+        diLights.push(dir.x, dir.y, dir.z, light.getIntensity())
+      })
+      gl.uniform4fv(this.getUniformLocation(BasicProgramUniform.DIRECTIONAL_LIGHTS), diLights)
+    }
 
     const vertices = geo.getFlatVertices()
     const normals = geo.getFlatNormals()

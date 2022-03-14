@@ -25,7 +25,10 @@ class SoapBubbleProgram extends BasicProgram {
   #colorMapImage: HTMLImageElement | null = null
 
   constructor(context: WebGLRenderingContext) {
-    super(context, vertexShaderSource, fragmentShaderSource)
+    super(context, vertexShaderSource, fragmentShaderSource, {
+      useDirectionalLights: true,
+      useModelInvertMatrix: true,
+    })
     this.createUniformLocation(SoapBubbleProgramUniform.EyeDirection)
     this.createTextureLocation(SoapBubbleProgramUniform.LightColorMap, 0)
 

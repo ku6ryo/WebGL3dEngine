@@ -24,7 +24,10 @@ class StandardProgram extends BasicProgram {
   #color: Color = new Color(1, 1, 1, 1)
 
   constructor(context: WebGLRenderingContext) {
-    super(context, vertexShaderSource, fragmentShaderSource)
+    super(context, vertexShaderSource, fragmentShaderSource, {
+      useDirectionalLights: true,
+      useModelInvertMatrix: true,
+    })
     this.createUniformLocation(StandardProgramUniform.Color)
   }
 

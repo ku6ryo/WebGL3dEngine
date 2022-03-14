@@ -25,6 +25,8 @@ class TextureProgram extends BasicProgram {
 
   constructor(context: WebGLRenderingContext) {
     super(context, vertexShaderSource, fragmentShaderSource, {
+      useDirectionalLights: true,
+      useModelInvertMatrix: true,
       useUv: true,
     })
     this.createTextureLocation(TextureProgramUniform.Texture, 0)
