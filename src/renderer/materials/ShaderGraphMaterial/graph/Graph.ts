@@ -98,11 +98,17 @@ export class Graph {
       }) 
     }
     addNodeToMap(outputNode as Node, "")
-    this.#resolvedNodes = Object.keys(nodeMap).sort((a, b) => {
+    const resolvedNodes: Node[] = []
+    Object.keys(nodeMap).sort((a, b) => {
       return b.length - a.length
-    }).map(k => {
-      return nodeMap[k]
+    }).forEach(k => {
+      // Removes duplications.
+      const n = nodeMap[k]
+      if (!resolvedNodes.includes(n)) {
+        resolvedNodes.push(n)
+      }
     })
+    this.#resolvedNodes = resolvedNodes
   }
 
   generateVertCode(): string {
@@ -142,9 +148,16 @@ void main() {
   generateFragCode(): string {
     let uniformCode = ""
     let attributeCode = ""
+    let commonCode = ""
     let mainCode = ""
+    let commonCodes: { [key: string]: string } = {}
+
     const attributeMap: Map<AttributeType, boolean> = new Map()
     this.#resolvedNodes.forEach(n => {
+      const cCode = n.generateCommonCode()
+      if (cCode && !commonCodes[n.getTypeId()]) {
+        commonCode += cCode + "\n"
+      }
       n.getAttributes().forEach(a => {
         attributeMap.set(a, true)
       })
@@ -154,17 +167,18 @@ void main() {
       mainCode += n.generateCode()
       const oSockets = n.getOutSockets()
       oSockets.forEach(s => {
-        const w = this.#wires.find(w => {
+        const wires = this.#wires.filter(w => {
           return w.getInSocket() === s
         })
-        if (w) {
+        wires.forEach(w => {
           mainCode += w.generateCode()
-        }
+        })
       })
     })
     if (attributeMap.get(AttributeType.UV)) {
       attributeCode += "varying vec2 vUV;\n"
     }
+    commonCode += Object.values(commonCodes).join("\n")
     return `
 precision mediump float;
 
@@ -172,6 +186,8 @@ ${uniformCode}
 
 varying vec3 vNormal;
 ${attributeCode}
+
+${commonCode}
 
 void main() {
 ${mainCode}

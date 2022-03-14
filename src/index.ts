@@ -32,6 +32,7 @@ import { MultiplyNode } from "./renderer/materials/ShaderGraphMaterial/graph/nod
 import { DotNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/math/DotNode";
 import { TangentNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/math/TangentNode";
 import { SineNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/math/SineNode";
+import { PerlinNoiseNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/noises/ParlinNoiseNode";
 
 const stats = new Stats()
 document.body.appendChild(stats.dom)
@@ -67,46 +68,27 @@ async function main() {
   img.src = sampleTexUrl
   img.onload = () => {
     const g = new Graph()
-    const ti0 = new TimeInputNode("ti0")
-    g.addNode(ti0)
-    const fr0 = new SineNode("fr0", ShaderDataType.Float)
-    g.addNode(fr0)
+    const uv0 = new UvInputNode("uv0")
+    g.addNode(uv0)
 
-    g.addWire(new Wire(ti0.getOutSockets()[0], fr0.getInSockets()[0]))
 
-    const f0 = new FloatInputNode("f0")
-    f0.setValue(0.1)
-    g.addNode(f0)
-
-    const d0 = new DotNode("d0", ShaderDataType.Float)
-    g.addNode(d0)
-    g.addWire(new Wire(fr0.getOutSockets()[0], d0.getInSockets()[0]))
-    g.addWire(new Wire(f0.getOutSockets()[0], d0.getInSockets()[1]))
+    const p0 = new PerlinNoiseNode("p0")
+    g.addNode(p0)
+    g.addWire(new Wire(uv0.getOutSockets()[0], p0.getInSockets()[0]))
 
 
     const t0 = new TextureInputNode("t0", img)
     g.addNode(t0)
-    const uv0 = new UvInputNode("uv0")
-    g.addNode(uv0)
     const st0 = new SampleTextureNode("st0")
     g.addNode(st0)
-    const v1 = new Vector4InputNode("v1")
-    v1.setValue(new Vector4(1, 0, 0, 1))
-    g.addNode(v1)
 
     g.addWire(new Wire(t0.getOutSockets()[0], st0.getInSockets()[0]))
     g.addWire(new Wire(uv0.getOutSockets()[0], st0.getInSockets()[1]))
 
-
-    const a0 = new AddNode("a0", ShaderDataType.Vector4)
-    g.addNode(a0)
-    g.addWire(new Wire(st0.getOutSockets()[0], a0.getInSockets()[0]))
-    g.addWire(new Wire(v1.getOutSockets()[0], a0.getInSockets()[1]))
-
     const a1 = new AddNode("a1", ShaderDataType.Vector4)
     g.addNode(a1)
-    g.addWire(new Wire(d0.getOutSockets()[0], a1.getInSockets()[0]))
-    g.addWire(new Wire(a0.getOutSockets()[0], a1.getInSockets()[1]))
+    g.addWire(new Wire(p0.getOutSockets()[0], a1.getInSockets()[0]))
+    g.addWire(new Wire(st0.getOutSockets()[0], a1.getInSockets()[1]))
 
     const o0 = new ColorOutputNode("o0")
     g.addNode(o0)

@@ -5,7 +5,7 @@ import { ShaderDataType } from "../../data_types";
 export class SampleTextureNode extends Node {
 
   constructor(id: string) {
-    super(id, "Math_Add")
+    super(id, "Texture_Sample")
     this.addInSocket("tex", ShaderDataType.Sampler2D)
     this.addInSocket("uv", ShaderDataType.Vector2)
     this.addOutSocket("color", ShaderDataType.Vector4)

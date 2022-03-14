@@ -18,8 +18,8 @@ export class Wire {
     return this.#outSocket
   }
 
-  throwError(message: string) {
-    throw new Error(message + 
+  protected createError(message: string) {
+    return new Error(message + 
       ` in: ${this.#inSocket.getId()} / ${this.#inSocket.getType()} out: ${this.#outSocket.getId()} / ${this.#outSocket.getType()}`
     )
   }
@@ -32,7 +32,7 @@ export class Wire {
 
     if (iType === ShaderDataType.Sampler2D) {
       if (oType !== ShaderDataType.Sampler2D) {
-        this.throwError("Sampler2D can only be connected to Sampler2D")
+        throw this.createError("Sampler2D can only be connected to Sampler2D")
       } else {
         this.#outSocket.overrideVariableName(iVar)
         return ""
@@ -40,49 +40,48 @@ export class Wire {
     }
 
     if (iType === oType) {
-      return `${oType} ${oVar} = ${iVar};`
+      return `${oType} ${oVar} = ${iVar};\n`
     }
     // float
     if (iType === ShaderDataType.Float && oType === ShaderDataType.Vector2) {
-      return `vec2 ${oVar} = vec2(${iVar});`
+      return `vec2 ${oVar} = vec2(${iVar});\n`
     }
     if (iType === ShaderDataType.Float && oType === ShaderDataType.Vector3) {
-      return `vec3 ${oVar} = vec3(${iVar});`
+      return `vec3 ${oVar} = vec3(${iVar});\n`
     }
     if (iType === ShaderDataType.Float && oType === ShaderDataType.Vector4) {
-      return `vec4 ${oVar} = vec4(${iVar});`
+      return `vec4 ${oVar} = vec4(${iVar});\n`
     }
     // vec2
     if (iType === ShaderDataType.Vector2 && oType === ShaderDataType.Float) {
-      return `float ${oVar} = ${iVar}.x;`
+      return `float ${oVar} = ${iVar}.x;\n`
     }
     if (iType === ShaderDataType.Vector2 && oType === ShaderDataType.Vector3) {
-      return `vec3 ${oVar} = vec3(${iVar}, 0.0);`
+      return `vec3 ${oVar} = vec3(${iVar}, 0.0);\n`
     }
     if (iType === ShaderDataType.Vector2 && oType === ShaderDataType.Vector4) {
-      return `vec4 ${oVar} = vec4(${iVar}, 0.0, 0.0);`
+      return `vec4 ${oVar} = vec4(${iVar}, 0.0, 0.0);\n`
     }
     // vec3
     if (iType === ShaderDataType.Vector3 && oType === ShaderDataType.Float) {
-      return `float ${oVar} = ${iVar}.x;`
+      return `float ${oVar} = ${iVar}.x;\n`
     }
     if (iType === ShaderDataType.Vector3 && oType === ShaderDataType.Vector2) {
-      return `vec2 ${oVar} = vec2(${iVar}.x, ${iVar}.y);`
+      return `vec2 ${oVar} = vec2(${iVar}.x, ${iVar}.y);\n`
     }
     if (iType === ShaderDataType.Vector3 && oType === ShaderDataType.Vector4) {
-      return `vec4 ${oVar} = vec4(${iVar}, 0.0);`
+      return `vec4 ${oVar} = vec4(${iVar}, 0.0);\n`
     }
     // vec4
     if (iType === ShaderDataType.Vector4 && oType === ShaderDataType.Float) {
-      return `float ${oVar} = ${iVar}.x;`
+      return `float ${oVar} = ${iVar}.x;\n`
     }
     if (iType === ShaderDataType.Vector4 && oType === ShaderDataType.Vector2) {
-      return `vec2 ${oVar} = vec2(${iVar}.x, ${iVar}.y);`
+      return `vec2 ${oVar} = vec2(${iVar}.x, ${iVar}.y);\n`
     }
     if (iType === ShaderDataType.Vector4 && oType === ShaderDataType.Vector3) {
-      return `vec3 ${oVar} = vec3(${iVar}.x, ${iVar}.y, ${iVar}.z);`
+      return `vec3 ${oVar} = vec3(${iVar}.x, ${iVar}.y, ${iVar}.z);\n`
     }
-    throw new Error("Unsupported connection type: " + iType + " to " + oType + " in:" + this.#inSocket.getId()
-     + " out: " + this.#outSocket.getId())
+    throw this.createError("Unsupported connection type")
   }
 }
