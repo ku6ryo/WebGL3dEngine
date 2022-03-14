@@ -5,7 +5,10 @@ export class Graph {
   #nodes: Node[] = []
   #wires: Wire[] = []
 
-  constructor() {}
+  /**
+   * Nodes that are effective. The order is sorted for code generation.
+   */
+  #resolvedNodes: Node[] = []
 
   /**
    * Adds a node to the graph.
@@ -47,13 +50,56 @@ export class Graph {
         n.setUnifromName(i, name)
       })
     })
+
+    let outputNode: Node | null = null
+    let outputNodeCount = 0
+    this.#nodes.forEach(n => {
+      if (n.isOutputNode()) {
+        outputNode = n
+        outputNodeCount++
+      }
+    })
+    if (outputNodeCount > 1) {
+      throw new Error("More than one output node found")
+    }
+    if (!outputNode) {
+      return
+    }
+
+    const nodeMap: { [key: string]: Node } = {}
+    const addNodeToMap = (n: Node, order: string) => {
+      nodeMap[order] = n
+      n.getInSockets().forEach((s, i) => {
+        const wires = this.#wires.filter(w => {
+          return w.getOutSocket() === s
+        })
+        if (wires.length > 1) {
+          throw new Error("in socket has more than 1 wires")
+        }
+        const wire = wires[0]
+        const inSocket = wire.getInSocket()
+        const nn = this.#nodes.find(n => {
+          return n.getOutSockets().includes(inSocket)
+        })
+        if (!nn) {
+          return
+        }
+        addNodeToMap(nn, order + Array(i + 1).fill("_"))
+      }) 
+    }
+    addNodeToMap(outputNode as Node, "")
+    this.#resolvedNodes = Object.keys(nodeMap).sort((a, b) => {
+      return b.length - a.length
+    }).map(k => {
+      return nodeMap[k]
+    })
   }
 
   generateVertCode(): string {
     let attributeCode = ""
     let mainCode = ""
     const attributeMap: Map<AttributeType, boolean> = new Map()
-    this.#nodes.forEach(n => {
+    this.#resolvedNodes.forEach(n => {
       n.getAttributes().forEach(a => {
         attributeMap.set(a, true)
       })
@@ -88,7 +134,7 @@ void main() {
     let attributeCode = ""
     let mainCode = ""
     const attributeMap: Map<AttributeType, boolean> = new Map()
-    this.#nodes.forEach(n => {
+    this.#resolvedNodes.forEach(n => {
       n.getAttributes().forEach(a => {
         attributeMap.set(a, true)
       })
@@ -100,7 +146,7 @@ void main() {
       oSockets.forEach(s => {
         const w = this.#wires.find(w => {
           return w.getInSocket() === s
-        }) 
+        })
         if (w) {
           mainCode += w.generateCode()
         }

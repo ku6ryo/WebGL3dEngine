@@ -5,7 +5,7 @@ import { Socket, SocketType } from "../../Socket";
 export class ColorOutputNode extends Node {
 
   constructor(id: string) {
-    super(id, "ColorOutput")
+    super(id, "ColorOutput", undefined, undefined, true)
     this.addInSocket("in0", SocketType.Vector4)
   }
 

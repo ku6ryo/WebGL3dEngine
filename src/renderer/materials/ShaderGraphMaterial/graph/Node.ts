@@ -37,12 +37,20 @@ export abstract class Node {
 
   #uniforms: Uniform[] = []
 
+  #isOutputNode: boolean
+
   /**
    * Attribute types to use. UV, Vertex color etc.
    */
   #attributes: AttributeType[] = []
 
-  constructor(id: string, typeId: string, uniforms: UniformType[] = [], attributes: AttributeType[] = []) {
+  constructor(
+    id: string,
+    typeId: string,
+    uniforms: UniformType[] = [],
+    attributes: AttributeType[] = [],
+    isOutputNode: boolean = false
+  ) {
     if (!validVariableName(id)) {
       throw new Error(`Invalid node id: ${id}`)
     }
@@ -58,6 +66,7 @@ export abstract class Node {
       }
     })
     this.#attributes = attributes
+    this.#isOutputNode = isOutputNode
   }
 
   getId() {
@@ -66,6 +75,10 @@ export abstract class Node {
 
   getTypeId() {
     return this.#typeId
+  }
+
+  isOutputNode() {
+    return this.#isOutputNode
   }
   
   protected createSocket(name: string, type: SocketType) {
