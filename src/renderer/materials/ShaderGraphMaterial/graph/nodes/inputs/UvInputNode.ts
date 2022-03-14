@@ -1,11 +1,11 @@
 import { AttributeType, Node } from "../../Node";
-import { SocketType } from "../../Socket";
+import { ShaderDataType } from "../../data_types";
 
 export class UvInputNode extends Node {
 
   constructor(id: string) {
     super(id, "UvInput", [], [AttributeType.UV])
-    this.addOutSocket("TextureInputNodeOut", SocketType.Vector2)
+    this.addOutSocket("TextureInputNodeOut", ShaderDataType.Vector2)
   }
 
   generateCommonCode(): string {

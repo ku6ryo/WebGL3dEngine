@@ -1,17 +1,11 @@
-export enum SocketType {
-  Float = "float",
-  Vector2 = "vec2",
-  Vector3 = "vec3",
-  Vector4 = "vec4",
-  Sampler2D = "sampler2D",
-}
+import { ShaderDataType } from "./data_types";
 
 export class Socket {
   #id: string;
-  #type: SocketType;
+  #type: ShaderDataType;
   #overriddenVariableName: string | null = null;
 
-  constructor(id: string, type: SocketType) {
+  constructor(id: string, type: ShaderDataType) {
     this.#id = id;
     this.#type = type
   }
@@ -20,7 +14,7 @@ export class Socket {
     return this.#id
   }
 
-  getType(): SocketType {
+  getType(): ShaderDataType {
     return this.#type
   }
 

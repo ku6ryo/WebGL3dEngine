@@ -1,12 +1,12 @@
 import { Node } from "../../Node";
-import { Socket, SocketType } from "../../Socket";
+import { ShaderDataType } from "../../data_types";
 
 
 export class ColorOutputNode extends Node {
 
   constructor(id: string) {
     super(id, "ColorOutput", undefined, undefined, true)
-    this.addInSocket("in0", SocketType.Vector4)
+    this.addInSocket("in0", ShaderDataType.Vector4)
   }
 
   generateCommonCode(): string {

@@ -2,7 +2,8 @@ import { Node } from "../../Node";
 import { ShaderDataType, ShaderVectorTypes } from "../../data_types";
 
 const SupportedTypes = ShaderVectorTypes.concat([ShaderDataType.Float]);
-export class AddNode extends Node {
+
+export class MultiplyNode extends Node {
 
   #type: ShaderDataType
 
@@ -10,7 +11,7 @@ export class AddNode extends Node {
     if (!SupportedTypes.includes(type)) {
       throw new Error("Unsupported type: " + type)
     }
-    super(id, "Math_Add")
+    super(id, "Math_Multiply")
     this.#type = type
     this.addInSocket("in0", type)
     this.addInSocket("in1", type)
@@ -25,7 +26,7 @@ export class AddNode extends Node {
     const inputs = this.getInSockets()
     const outputs = this.getOutSockets()
     return `
-    ${this.#type} ${outputs[0].getVeriableName()} = ${inputs[0].getVeriableName()} + ${inputs[1].getVeriableName()};
+    ${this.#type} ${outputs[0].getVeriableName()} = ${inputs[0].getVeriableName()} * ${inputs[1].getVeriableName()};
     `
   }
 }

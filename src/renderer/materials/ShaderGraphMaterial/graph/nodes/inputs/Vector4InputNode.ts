@@ -1,7 +1,7 @@
 import { Vector4 } from "../../../../../math/Vector4";
 import { createValidNumberLiteral } from "../../utils";
 import { Node } from "../../Node";
-import { SocketType } from "../../Socket";
+import { ShaderDataType } from "../../data_types";
 
 
 export class Vector4InputNode extends Node {
@@ -10,7 +10,7 @@ export class Vector4InputNode extends Node {
 
   constructor(id: string) {
     super(id, "Vector4Input")
-    this.addOutSocket("vector4InputNodeOut", SocketType.Vector4)
+    this.addOutSocket("vector4InputNodeOut", ShaderDataType.Vector4)
   }
 
   getValue(): Vector4 {

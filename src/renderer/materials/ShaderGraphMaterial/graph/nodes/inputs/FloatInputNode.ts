@@ -1,6 +1,6 @@
 import { createValidNumberLiteral } from "../../utils";
 import { Node } from "../../Node";
-import { SocketType } from "../../Socket";
+import { ShaderDataType } from "../../data_types";
 
 
 export class FloatInputNode extends Node {
@@ -9,7 +9,7 @@ export class FloatInputNode extends Node {
 
   constructor(id: string) {
     super(id, "FloatInput")
-    this.addOutSocket("floatInputNodeOut", SocketType.Float)
+    this.addOutSocket("floatInputNodeOut", ShaderDataType.Float)
   }
 
   getValue(): number {

@@ -20,12 +20,18 @@ import { ColorOutputNode } from "./renderer/materials/ShaderGraphMaterial/graph/
 import { Wire } from "./renderer/materials/ShaderGraphMaterial/graph/Wire";
 import { ShaderGraphMaterial } from "./renderer/materials/ShaderGraphMaterial/ShaderGraphMaterial";
 import { AddNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/math/AddNode";
-import { SocketType } from "./renderer/materials/ShaderGraphMaterial/graph/Socket";
+import { ShaderDataType } from "./renderer/materials/ShaderGraphMaterial/graph/data_types";
 import { Vector4InputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/Vector4InputNode";
 import { Vector4 } from "./renderer/math/Vector4";
 import { TextureInputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/TextureInputNode";
 import { SampleTextureNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/texture/SampleTextureNode";
 import { UvInputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/UvInputNode";
+import { TimeInputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/TimeInputNode";
+import { FracNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/math/FracNode";
+import { MultiplyNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/math/MultiplyNode";
+import { DotNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/math/DotNode";
+import { TangentNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/math/TangentNode";
+import { SineNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/math/SineNode";
 
 const stats = new Stats()
 document.body.appendChild(stats.dom)
@@ -61,24 +67,51 @@ async function main() {
   img.src = sampleTexUrl
   img.onload = () => {
     const g = new Graph()
+    const ti0 = new TimeInputNode("ti0")
+    g.addNode(ti0)
+    const fr0 = new SineNode("fr0", ShaderDataType.Float)
+    g.addNode(fr0)
+
+    g.addWire(new Wire(ti0.getOutSockets()[0], fr0.getInSockets()[0]))
+
+    const f0 = new FloatInputNode("f0")
+    f0.setValue(0.1)
+    g.addNode(f0)
+
+    const d0 = new DotNode("d0", ShaderDataType.Float)
+    g.addNode(d0)
+    g.addWire(new Wire(fr0.getOutSockets()[0], d0.getInSockets()[0]))
+    g.addWire(new Wire(f0.getOutSockets()[0], d0.getInSockets()[1]))
+
+
     const t0 = new TextureInputNode("t0", img)
+    g.addNode(t0)
     const uv0 = new UvInputNode("uv0")
+    g.addNode(uv0)
     const st0 = new SampleTextureNode("st0")
+    g.addNode(st0)
     const v1 = new Vector4InputNode("v1")
     v1.setValue(new Vector4(1, 0, 0, 1))
-    const a0 = new AddNode("a0", SocketType.Vector4)
-    const o0  = new ColorOutputNode("o0")
-    g.addNode(uv0)
-    g.addNode(t0)
-    g.addNode(st0)
     g.addNode(v1)
-    g.addNode(a0)
+
     g.addWire(new Wire(t0.getOutSockets()[0], st0.getInSockets()[0]))
     g.addWire(new Wire(uv0.getOutSockets()[0], st0.getInSockets()[1]))
+
+
+    const a0 = new AddNode("a0", ShaderDataType.Vector4)
+    g.addNode(a0)
     g.addWire(new Wire(st0.getOutSockets()[0], a0.getInSockets()[0]))
     g.addWire(new Wire(v1.getOutSockets()[0], a0.getInSockets()[1]))
-    g.addWire(new Wire(a0.getOutSockets()[0], o0.getInSockets()[0]))
+
+    const a1 = new AddNode("a1", ShaderDataType.Vector4)
+    g.addNode(a1)
+    g.addWire(new Wire(d0.getOutSockets()[0], a1.getInSockets()[0]))
+    g.addWire(new Wire(a0.getOutSockets()[0], a1.getInSockets()[1]))
+
+    const o0 = new ColorOutputNode("o0")
     g.addNode(o0)
+    g.addWire(new Wire(a1.getOutSockets()[0], o0.getInSockets()[0]))
+
     console.log(g.generateVertCode())
     console.log(g.generateFragCode())
     const m2 = new ShaderGraphMaterial(g)

@@ -70,6 +70,12 @@ export class Program {
     this.#textureUniformLocations[name] = { location, index }
   }
 
+  protected setFloatUniformValue(name: string, value: number) {
+    const location = this.getUniformLocation(name)
+    const gl = this.#context
+    gl.uniform1f(location, value);
+  }
+
   protected getTextureLocation(name: string) {
     const location = this.#textureUniformLocations[name]
     if (!location) {

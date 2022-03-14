@@ -14,6 +14,9 @@ export class Graph {
    * Adds a node to the graph.
    */
   addNode(node: Node) {
+    if (this.#nodes.map(n => n.getId()).includes(node.getId())) {
+      throw new Error("the same node id already exists : " + node.getId())
+    }
     this.#nodes.push(node)
     this.resolveGraph()
   }
@@ -23,6 +26,10 @@ export class Graph {
    */
   getNodes(): Node[] {
     return [...this.#nodes]
+  }
+
+  getResolvedNodes(): Node[] {
+    return [...this.#resolvedNodes]
   }
 
   /**
@@ -74,7 +81,10 @@ export class Graph {
           return w.getOutSocket() === s
         })
         if (wires.length > 1) {
-          throw new Error("in socket has more than 1 wires")
+          throw new Error("no wire or in socket has more than 1 wires connected to in socket " + s.getId())
+        }
+        if (wires.length === 0) {
+          return
         }
         const wire = wires[0]
         const inSocket = wire.getInSocket()

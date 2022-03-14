@@ -1,14 +1,14 @@
 import { Node } from "../../Node";
-import { SocketType } from "../../Socket";
+import { ShaderDataType } from "../../data_types";
 
 
 export class SampleTextureNode extends Node {
 
   constructor(id: string) {
     super(id, "Math_Add")
-    this.addInSocket("tex", SocketType.Sampler2D)
-    this.addInSocket("uv", SocketType.Vector2)
-    this.addOutSocket("color", SocketType.Vector4)
+    this.addInSocket("tex", ShaderDataType.Sampler2D)
+    this.addInSocket("uv", ShaderDataType.Vector2)
+    this.addOutSocket("color", ShaderDataType.Vector4)
   }
 
   generateCommonCode(): string {

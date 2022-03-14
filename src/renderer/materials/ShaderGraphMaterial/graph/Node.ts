@@ -2,9 +2,11 @@ import { Vector2 } from "../../../math/Vector2";
 import { Vector3 } from "../../../math/Vector3";
 import { Vector4 } from "../../../math/Vector4";
 import { validVariableName } from "./utils";
-import { Socket, SocketType } from "./Socket";
+import { Socket } from "./Socket";
+import { ShaderDataType } from "./data_types";
 
 export enum UniformType {
+  Float = "float",
   Vector2 = "vec2",
   Vector3 = "vec3",
   Vector4 = "vec4",
@@ -15,6 +17,7 @@ export type Uniform = {
   type: UniformType;
   name?: string;
   valueSampler2D?: HTMLImageElement;
+  valueFloat?: number;
   valueVector2?: Vector2;
   valueVector3?: Vector3;
   valueVector4?: Vector4;
@@ -44,12 +47,15 @@ export abstract class Node {
    */
   #attributes: AttributeType[] = []
 
+  #needsUniformUpdateOnDraw = false
+
   constructor(
     id: string,
     typeId: string,
     uniforms: UniformType[] = [],
     attributes: AttributeType[] = [],
-    isOutputNode: boolean = false
+    isOutputNode: boolean = false,
+    needsUniformUpdatesOnDraw: boolean = false
   ) {
     if (!validVariableName(id)) {
       throw new Error(`Invalid node id: ${id}`)
@@ -67,6 +73,7 @@ export abstract class Node {
     })
     this.#attributes = attributes
     this.#isOutputNode = isOutputNode
+    this.#needsUniformUpdateOnDraw = needsUniformUpdatesOnDraw
   }
 
   getId() {
@@ -80,15 +87,21 @@ export abstract class Node {
   isOutputNode() {
     return this.#isOutputNode
   }
+
+  needsUniformUpdatesOnDraw() {
+    return this.#needsUniformUpdateOnDraw
+  }
   
-  protected createSocket(name: string, type: SocketType) {
+  updateOnDraw() {}
+  
+  protected createSocket(name: string, type: ShaderDataType) {
     if (!validVariableName(name)) {
       throw new Error(`Invalid socket name: ${name}`)
     }
     return new Socket(this.#id + "_" + name, type)
   }
 
-  protected addInSocket(name: string, type: SocketType) {
+  protected addInSocket(name: string, type: ShaderDataType) {
     this.#inSockets.push(this.createSocket(name, type))
   }
 
@@ -96,7 +109,7 @@ export abstract class Node {
     return [...this.#inSockets]
   }
 
-  protected addOutSocket(name: string, type: SocketType) {
+  protected addOutSocket(name: string, type: ShaderDataType) {
     this.#outSockets.push(this.createSocket(name, type))
   }
 
@@ -127,17 +140,20 @@ export abstract class Node {
     return u.name
   }
 
+  setUniformValue(index: number, value: number): void;
   setUniformValue(index: number, value: Vector2): void;
   setUniformValue(index: number, value: Vector3): void;
   setUniformValue(index: number, value: Vector4): void;
   setUniformValue(index: number, value: HTMLImageElement): void;
-  setUniformValue(index: number, value: HTMLImageElement | Vector2 | Vector3 | Vector4): void {
+  setUniformValue(index: number, value: HTMLImageElement | number | Vector2 | Vector3 | Vector4): void {
     const u = this.#uniforms[index]
     if (!u) {
       throw new Error(`Uniform index ${index} does not exist`)
     }
     if (value instanceof HTMLImageElement) {
       u.valueSampler2D = value
+    } else if (typeof value === "number") {
+      u.valueFloat = value
     } else if (value instanceof Vector2) {
       u.valueVector2 = value
     } else if (value instanceof Vector3) {

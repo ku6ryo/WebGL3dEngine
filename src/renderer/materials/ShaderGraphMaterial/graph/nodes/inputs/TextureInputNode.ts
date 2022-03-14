@@ -1,5 +1,5 @@
 import { Node, UniformType } from "../../Node";
-import { SocketType } from "../../Socket";
+import { ShaderDataType } from "../../data_types";
 
 export class TextureInputNode extends Node {
 
@@ -9,7 +9,7 @@ export class TextureInputNode extends Node {
     super(id, "Input_Texture", [UniformType.Sampler2D])
     this.#value = value
     this.setUniformValue(0, value)
-    this.addOutSocket("TextureInputNodeOut", SocketType.Sampler2D)
+    this.addOutSocket("TextureInputNodeOut", ShaderDataType.Sampler2D)
   }
 
   getValue(): HTMLImageElement {

@@ -39,7 +39,8 @@ export class ShaderGraphProgram extends BasicProgram {
   }
 
   preDraw(_: Camera, __: Thing): void {
-    this.#graph.getNodes().forEach(n => {
+    this.#graph.getResolvedNodes().forEach(n => {
+      n.updateOnDraw()
       n.getUniforms().forEach((u) => {
         if (!u.name) {
           throw new Error("Uniform name is not set")
@@ -49,7 +50,8 @@ export class ShaderGraphProgram extends BasicProgram {
             throw new Error("texture is not set")
           }
           this.setTextureValue(u.name, u.valueSampler2D)
-        } else {
+        } else if (u.type === UniformType.Float) {
+          this.setFloatUniformValue(u.name, u.valueFloat || 0)
           // TODO implement other uniforms
         }
       })
