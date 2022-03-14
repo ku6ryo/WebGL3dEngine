@@ -23,6 +23,9 @@ import { AddNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/ma
 import { SocketType } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/Socket";
 import { Vector4InputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/Vector4InputNode";
 import { Vector4 } from "./renderer/math/Vector4";
+import { TextureInputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/TextureInputNode";
+import { SampleTextureNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/texture/SampleTextureNode";
+import { UvInputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/UvInputNode";
 
 const stats = new Stats()
 document.body.appendChild(stats.dom)
@@ -50,8 +53,10 @@ async function main() {
   camera.setUp(new Vector3(0, 1, 0))
   camera.setProjectionParams(Math.PI / 4, glCanvas.width / glCanvas.height, 0.1, 100)
 
+  /*
   const box = new Thing(new BoxGeometry())
   renderer.addThing(box)
+  */
 
   const light = new DirectionalLight(new Vector3(0, -1, 1), 1)
   renderer.addDirectionalLight(light)
@@ -60,11 +65,37 @@ async function main() {
   const img = new Image()
   img.src = sampleTexUrl
   img.onload = () => {
+    const g = new Graph()
+    const t0 = new TextureInputNode("t0", img)
+    const uv0 = new UvInputNode("uv0")
+    const st0 = new SampleTextureNode("st0")
+    const v1 = new Vector4InputNode("v1")
+    v1.setValue(new Vector4(1, 0, 0, 1))
+    const a0 = new AddNode("a0", SocketType.Vector4)
+
+    const o0  = new ColorOutputNode("o0")
+    g.addNode(t0)
+    g.addNode(uv0)
+    g.addWire(new Wire(t0.getOutSockets()[0], st0.getInSockets()[0]))
+    g.addWire(new Wire(uv0.getOutSockets()[0], st0.getInSockets()[1]))
+    g.addNode(st0)
+    g.addNode(v1)
+    g.addNode(a0)
+    g.addWire(new Wire(st0.getOutSockets()[0], a0.getInSockets()[0]))
+    g.addWire(new Wire(v1.getOutSockets()[0], a0.getInSockets()[1]))
+    g.addWire(new Wire(a0.getOutSockets()[0], o0.getInSockets()[0]))
+    /*
+    g.addNode(f0)
+    g.addNode(o0)
+    g.addWire(new Wire(f0.getOutSockets()[0], a0.getInSockets()[0]))
+    */
+    g.addNode(o0)
+    console.log(g.generateVertCode())
+    console.log(g.generateFragCode())
+    const m2 = new ShaderGraphMaterial(g)
     const plane = new Thing(new PlaneGeometry())
-    const m = new TextureMaterial()
-    m.setTexture(img)
-    plane.setMaterial(m)
-    plane.setPosition(new Vector3(-1, 0, 0))
+    plane.setMaterial(m2)
+    plane.setPosition(new Vector3(1, 0, 0))
     renderer.addThing(plane)
   }
 
@@ -74,26 +105,6 @@ async function main() {
   torus.setMaterial(tMat)
   renderer.addThing(torus)
 
-  const g = new Graph()
-  const f0 = new FloatInputNode("f0")
-  f0.setValue(0.3)
-  const v1 = new Vector4InputNode("v1")
-  v1.setValue(new Vector4(1, 0, 0, 1))
-  const a0 = new AddNode("a0", SocketType.Vector4)
-  const o0  = new ColorOutputNode("o0")
-  g.addNode(f0)
-  g.addNode(v1)
-  g.addNode(a0)
-  g.addNode(o0)
-  g.addWire(new Wire(f0.getOutSockets()[0], a0.getInSockets()[0]))
-  g.addWire(new Wire(v1.getOutSockets()[0], a0.getInSockets()[1]))
-  g.addWire(new Wire(a0.getOutSockets()[0], o0.getInSockets()[0]))
-  console.log(g.generateFragCode())
-  const m2 = new ShaderGraphMaterial(g)
-  const plane = new Thing(new PlaneGeometry())
-  plane.setMaterial(m2)
-  plane.setPosition(new Vector3(1, 0, 0))
-  renderer.addThing(plane)
 
   process()
   async function process () {

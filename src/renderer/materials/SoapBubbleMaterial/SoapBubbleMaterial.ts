@@ -3,8 +3,8 @@ import { getProgram } from "./SoapBubbleProgram"
 
 export class SoapBubbleMaterial extends Material {
 
-  constructor() {
-    super()
+  useTransparency(): boolean {
+    return true
   }
 
   getProgramForRender(gl: WebGLRenderingContext) {

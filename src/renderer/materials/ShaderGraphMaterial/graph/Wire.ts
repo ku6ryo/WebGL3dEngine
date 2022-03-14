@@ -19,9 +19,19 @@ export class Wire {
 
   generateCode(): string {
     const iType = this.#inSocket.getType()
-    const iVar= this.#inSocket.getVeriableName()
+    const iVar = this.#inSocket.getVeriableName()
     const oType = this.#outSocket.getType()
     const oVar = this.#outSocket.getVeriableName()
+
+    if (iType === SocketType.Sampler2D) {
+      if (oType !== SocketType.Sampler2D) {
+        throw new Error("Sampler2D can only be connected to Sampler2D")
+      } else {
+        this.#outSocket.overrideVariableName(iVar)
+        return ""
+      }
+    }
+
     if (iType === oType) {
       return `${oType} ${oVar} = ${iVar};`
     }

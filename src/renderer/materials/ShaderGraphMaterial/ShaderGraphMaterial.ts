@@ -1,6 +1,7 @@
 import { BasicProgram } from "../BasicProgram";
 import { Material } from "../Material";
 import { Graph } from "./graph/Graph";
+import { ShaderGraphProgram } from "./ShaderGaraphProgram";
 
 export class ShaderGraphMaterial extends Material {
   #program: BasicProgram | null = null;
@@ -15,11 +16,7 @@ export class ShaderGraphMaterial extends Material {
     if (this.#program) {
       return this.#program;
     }
-    this.#program = new BasicProgram(
-      gl,
-      this.#graph.generateVertCode(),
-      this.#graph.generateFragCode()
-    );
-    return this.#program;
+    const program = new ShaderGraphProgram(gl, this.#graph);
+    return program 
   }
 }

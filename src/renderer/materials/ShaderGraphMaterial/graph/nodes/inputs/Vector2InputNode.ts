@@ -3,7 +3,6 @@ import { createValidNumberLiteral } from "../../utils";
 import { Node } from "../Node";
 import { SocketType } from "../Socket";
 
-
 export class Vector2InputNode extends Node {
 
   #value: Vector2 = new Vector2(0, 0)

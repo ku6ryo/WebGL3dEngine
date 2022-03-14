@@ -50,7 +50,13 @@ export class Renderer {
     glContext.clearColor(0, 0, 0, 0);
     glContext.clear(glContext.COLOR_BUFFER_BIT);
 
-    this.#things.forEach(t => {
+    const things = this.getThings().sort((a, b) => {
+      const at = a.getMaterial().useTransparency() ? 1 : 0 
+      const bt = b.getMaterial().useTransparency() ? 1 : 0
+      return at - bt < 0 ? -1 : 1
+    })
+
+    things.forEach(t => {
       const m = t.getMaterial()
       m.getProgramForRender(glContext).draw(camera, t, this.#directionalLights)
     })
