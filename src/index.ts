@@ -53,11 +53,6 @@ async function main() {
   camera.setUp(new Vector3(0, 1, 0))
   camera.setProjectionParams(Math.PI / 4, glCanvas.width / glCanvas.height, 0.1, 100)
 
-  /*
-  const box = new Thing(new BoxGeometry())
-  renderer.addThing(box)
-  */
-
   const light = new DirectionalLight(new Vector3(0, -1, 1), 1)
   renderer.addDirectionalLight(light)
   renderer.addDirectionalLight(new DirectionalLight(new Vector3(1, 1, 1), 1))
@@ -72,7 +67,6 @@ async function main() {
     const v1 = new Vector4InputNode("v1")
     v1.setValue(new Vector4(1, 0, 0, 1))
     const a0 = new AddNode("a0", SocketType.Vector4)
-
     const o0  = new ColorOutputNode("o0")
     g.addNode(t0)
     g.addNode(uv0)
@@ -84,34 +78,23 @@ async function main() {
     g.addWire(new Wire(st0.getOutSockets()[0], a0.getInSockets()[0]))
     g.addWire(new Wire(v1.getOutSockets()[0], a0.getInSockets()[1]))
     g.addWire(new Wire(a0.getOutSockets()[0], o0.getInSockets()[0]))
-    /*
-    g.addNode(f0)
-    g.addNode(o0)
-    g.addWire(new Wire(f0.getOutSockets()[0], a0.getInSockets()[0]))
-    */
     g.addNode(o0)
     console.log(g.generateVertCode())
     console.log(g.generateFragCode())
     const m2 = new ShaderGraphMaterial(g)
-    const plane = new Thing(new PlaneGeometry())
-    plane.setMaterial(m2)
-    plane.setPosition(new Vector3(1, 0, 0))
-    renderer.addThing(plane)
+    const torus = new Thing(new TorusGeometry(0.5, 50, 100))
+    torus.setMaterial(m2)
+    renderer.addThing(torus)
   }
-
-  const torus = new Thing(new TorusGeometry(0.5, 100, 200))
-  // const tMat = new PhongMaterial()
-  const tMat = new SoapBubbleMaterial()
-  torus.setMaterial(tMat)
-  renderer.addThing(torus)
-
 
   process()
   async function process () {
     stats.begin()
+    /*
     torus.setPosition(new Vector3(Math.sin(Date.now() / 1000) * 2, 0, 0))
     torus.setRotation(torus.getRotation().add(new Vector3(0, 0.01, 0)))
     torus.setScale(new Vector3(1 + 0.1 * Math.sin((20 * performance.now() / 1000) % 5) * Math.pow(Math.E, - (performance.now() / 1000) % 5), 1, 1))
+    */
     light.setDirection(new Vector3(Math.sin(10 * performance.now() / 1000), -1, 1))
     renderer.render(camera)
     stats.end()
