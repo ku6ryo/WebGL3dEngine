@@ -1,5 +1,5 @@
-import { AttributeType, Node, UniformType } from "../Node";
-import { SocketType } from "../Socket";
+import { AttributeType, Node } from "../../Node";
+import { SocketType } from "../../Socket";
 
 export class UvInputNode extends Node {
 

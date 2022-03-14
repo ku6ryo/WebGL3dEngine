@@ -1,4 +1,4 @@
-import { Socket, SocketType } from "./nodes/Socket"
+import { Socket, SocketType } from "./Socket"
 
 export class Wire {
   #inSocket: Socket

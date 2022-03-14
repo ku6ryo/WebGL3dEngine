@@ -1,5 +1,5 @@
-import { Node } from "../Node";
-import { Socket, SocketType } from "../Socket";
+import { Node } from "../../Node";
+import { Socket, SocketType } from "../../Socket";
 
 
 export class ColorOutputNode extends Node {

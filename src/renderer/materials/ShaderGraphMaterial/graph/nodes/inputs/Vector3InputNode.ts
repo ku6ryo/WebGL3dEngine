@@ -1,7 +1,7 @@
 import { Vector3 } from "../../../../../math/Vector3";
 import { createValidNumberLiteral } from "../../utils";
-import { Node } from "../Node";
-import { SocketType } from "../Socket";
+import { Node } from "../../Node";
+import { SocketType } from "../../Socket";
 
 
 export class Vector3InputNode extends Node {

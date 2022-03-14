@@ -2,7 +2,7 @@ import { Camera } from "../../Camera";
 import { Thing } from "../../Thing";
 import { BasicProgram } from "../BasicProgram"
 import { Graph } from "./graph/Graph"
-import { AttributeType, UniformType } from "./graph/nodes/Node";
+import { AttributeType, UniformType } from "./graph/Node";
 
 export class ShaderGraphProgram extends BasicProgram {
   #graph: Graph;

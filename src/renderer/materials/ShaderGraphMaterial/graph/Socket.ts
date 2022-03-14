@@ -9,12 +9,15 @@ export enum SocketType {
 export class Socket {
   #id: string;
   #type: SocketType;
-
   #overriddenVariableName: string | null = null;
 
   constructor(id: string, type: SocketType) {
     this.#id = id;
     this.#type = type
+  }
+
+  getId() {
+    return this.#id
   }
 
   getType(): SocketType {
@@ -31,5 +34,12 @@ export class Socket {
    */
   overrideVariableName(name: string) {
     this.#overriddenVariableName = name
+  }
+
+  /**
+   * Stops overriding the variable name.
+   */
+  clearVariableNameOverride() {
+    this.#overriddenVariableName = null
   }
 }

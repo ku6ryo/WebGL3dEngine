@@ -1,5 +1,5 @@
-import { Node, UniformType } from "../Node";
-import { SocketType } from "../Socket";
+import { Node, UniformType } from "../../Node";
+import { SocketType } from "../../Socket";
 
 export class TextureInputNode extends Node {
 

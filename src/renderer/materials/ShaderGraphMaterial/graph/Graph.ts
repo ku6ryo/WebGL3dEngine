@@ -1,4 +1,4 @@
-import { AttributeType, Node } from "./nodes/Node"
+import { AttributeType, Node } from "./Node"
 import { Wire } from "./Wire"
 
 export class Graph {
@@ -7,25 +7,40 @@ export class Graph {
 
   constructor() {}
 
+  /**
+   * Adds a node to the graph.
+   */
   addNode(node: Node) {
     this.#nodes.push(node)
     this.resolveGraph()
   }
 
+  /**
+   * Gets all nodes in the graph. 
+   */
   getNodes(): Node[] {
     return [...this.#nodes]
   }
 
+  /**
+   * Addes a wire to the graph.
+   */
   addWire(wire: Wire) {
     this.#wires.push(wire)
     this.resolveGraph()
   }
 
+  /**
+   * Gets all wires in the graph.
+   */
   getWires(): Wire[] {
     return [...this.#wires]
   }
 
-  resolveGraph() {
+  /**
+   * Resolve graph structure. Orders of nodes etc.
+   */
+  protected resolveGraph() {
     this.#nodes.forEach(n => {
       n.getUniforms().forEach((u, i) => {
         const name = `u${n.getId()}_${i}_${u.type}`

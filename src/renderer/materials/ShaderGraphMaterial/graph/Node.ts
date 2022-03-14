@@ -1,7 +1,7 @@
-import { Vector2 } from "../../../../math/Vector2";
-import { Vector3 } from "../../../../math/Vector3";
-import { Vector4 } from "../../../../math/Vector4";
-import { validVariableName } from "../utils";
+import { Vector2 } from "../../../math/Vector2";
+import { Vector3 } from "../../../math/Vector3";
+import { Vector4 } from "../../../math/Vector4";
+import { validVariableName } from "./utils";
 import { Socket, SocketType } from "./Socket";
 
 export enum UniformType {
@@ -37,6 +37,9 @@ export abstract class Node {
 
   #uniforms: Uniform[] = []
 
+  /**
+   * Attribute types to use. UV, Vertex color etc.
+   */
   #attributes: AttributeType[] = []
 
   constructor(id: string, typeId: string, uniforms: UniformType[] = [], attributes: AttributeType[] = []) {
@@ -65,7 +68,7 @@ export abstract class Node {
     return this.#typeId
   }
   
-  createSocket(name: string, type: SocketType) {
+  protected createSocket(name: string, type: SocketType) {
     if (!validVariableName(name)) {
       throw new Error(`Invalid socket name: ${name}`)
     }

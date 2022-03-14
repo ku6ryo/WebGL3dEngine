@@ -20,7 +20,7 @@ import { ColorOutputNode } from "./renderer/materials/ShaderGraphMaterial/graph/
 import { Wire } from "./renderer/materials/ShaderGraphMaterial/graph/Wire";
 import { ShaderGraphMaterial } from "./renderer/materials/ShaderGraphMaterial/ShaderGraphMaterial";
 import { AddNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/math/AddNode";
-import { SocketType } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/Socket";
+import { SocketType } from "./renderer/materials/ShaderGraphMaterial/graph/Socket";
 import { Vector4InputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/Vector4InputNode";
 import { Vector4 } from "./renderer/math/Vector4";
 import { TextureInputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/TextureInputNode";

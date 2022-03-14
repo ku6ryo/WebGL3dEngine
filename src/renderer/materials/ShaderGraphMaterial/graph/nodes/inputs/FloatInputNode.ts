@@ -1,6 +1,6 @@
 import { createValidNumberLiteral } from "../../utils";
-import { Node } from "../Node";
-import { SocketType } from "../Socket";
+import { Node } from "../../Node";
+import { SocketType } from "../../Socket";
 
 
 export class FloatInputNode extends Node {

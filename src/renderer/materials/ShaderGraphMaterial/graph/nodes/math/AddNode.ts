@@ -1,5 +1,5 @@
-import { Node } from "../Node";
-import { SocketType } from "../Socket";
+import { Node } from "../../Node";
+import { SocketType } from "../../Socket";
 
 
 export class AddNode extends Node {
