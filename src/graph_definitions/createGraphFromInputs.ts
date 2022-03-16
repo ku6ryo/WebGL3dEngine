@@ -16,14 +16,23 @@ import { DotNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/m
 import { SubtractNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/math/SubtractNode";
 import { FracNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/math/FracNode";
 import { MultiplyNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/math/MultiplyNode";
+import { TextureInputNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/TextureInputNode";
+import { SampleTextureNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/texture/SampleTextureNode";
+import { TimeInputNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/TimeInputNode";
+import { CombineNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/math/CombineNode";
+import { SeparateNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/math/SeparateNode";
 
 
 export function createGraphFromInputs(nodes: NodeProps[], wires: WireProps[]): Graph {
   const graph = new Graph()
   nodes.forEach(n => {
     let sn: Node | null = null
+    // Input
     if (n.typeId === NodeTypeId.InputUv) {
       sn = new UvInputNode(n.id)
+    }
+    if (n.typeId === NodeTypeId.InputTime) {
+      sn = new TimeInputNode(n.id)
     }
     if (n.typeId === NodeTypeId.InputFloat) {
       sn = (() => {
@@ -32,6 +41,16 @@ export function createGraphFromInputs(nodes: NodeProps[], wires: WireProps[]): G
         return node
       })()
     }
+    if (n.typeId === NodeTypeId.InputTexture) {
+      sn = (() => {
+        if (n.inNodeInputValues[0].image) {
+          return new TextureInputNode(n.id, n.inNodeInputValues[0].image)
+        } else {
+          throw new Error("no image")
+        }
+      })()
+    }
+    // Output
     if (n.typeId === NodeTypeId.OutputColor) {
       sn = new ColorOutputNode(n.id)
     }
@@ -60,10 +79,20 @@ export function createGraphFromInputs(nodes: NodeProps[], wires: WireProps[]): G
     if (n.typeId === NodeTypeId.MathFrac) {
       sn = new FracNode(n.id, ShaderDataType.Vector4)
     }
+    if (n.typeId === NodeTypeId.MathCombine) {
+      sn = new CombineNode(n.id)
+    }
+    if (n.typeId === NodeTypeId.MathSeparate) {
+      sn = new SeparateNode(n.id)
+    }
     // Texture
     if (n.typeId === NodeTypeId.TexturePerlinNoise) {
       sn = new PerlinNoiseNode(n.id)
     }
+    if (n.typeId === NodeTypeId.TextureSample) {
+      sn = new SampleTextureNode(n.id)
+    }
+
     if (sn) {
       graph.addNode(sn)
     }
@@ -76,7 +105,7 @@ export function createGraphFromInputs(nodes: NodeProps[], wires: WireProps[]): G
         new Wire(
           node2.getOutSockets()[w.socketIndex2],
           node1.getInSockets()[w.socketIndex1],
-       )
+        )
       )
     }
   })

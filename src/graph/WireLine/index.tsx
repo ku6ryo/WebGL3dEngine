@@ -19,7 +19,7 @@ export function WireLine({
     if (x1 === x2 || y1 === y2) {
       return `M ${x1} ${y1} L ${x2 + 0.1} ${y2 + 0.1}`
     } else {
-      return `M ${x1} ${y1}, C ${x1 - d} ${y1}, ${x2 + d} ${y2}, ${x2} ${y2}`
+      return `M ${x1} ${y1}, C ${x1 + d} ${y1}, ${x2 - d} ${y2}, ${x2} ${y2}`
     }
   }, [x1, y1, x2, y2])
   return (

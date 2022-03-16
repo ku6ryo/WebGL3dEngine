@@ -1,12 +1,17 @@
 .frame {
   background-color: #222;
+  background-image:  linear-gradient(#090909 0.6000000000000001px, transparent 0.6000000000000001px), linear-gradient(to right, #090909 0.6000000000000001px, #222 0.6000000000000001px);
+  background-size: 12px 12px;
   height: 100%;
   width: 100%;
 }
 
 .board {
+  position: absolute;
+  left: 130px;
   height: 100%;
-  width: 100%;
+  position: relative;
+  width: calc(100% - 130px);
 }
 
 .nodeSelector {
@@ -17,6 +22,9 @@
   position: absolute;
   top: 0;
   user-select: none;
+  border-right: 1px solid black;
+  overflow-y: scroll;
+  height: 100%;
 
   .item {
     border-bottom: 1px solid black;

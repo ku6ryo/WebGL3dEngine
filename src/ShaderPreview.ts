@@ -60,6 +60,7 @@ export class ShaderPreview {
       this.#targetThing.setMaterial(new ShaderGraphMaterial(graph))
     } catch (e) {
       console.error(e)
+      this.#targetThing.setMaterial(new StandardMaterial())
     }
   }
 

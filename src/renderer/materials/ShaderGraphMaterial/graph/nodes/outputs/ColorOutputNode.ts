@@ -6,7 +6,7 @@ export class ColorOutputNode extends Node {
 
   constructor(id: string) {
     super(id, "ColorOutput", undefined, undefined, true)
-    this.addInSocket("in0", ShaderDataType.Vector4)
+    this.addInSocket("in0", ShaderDataType.Vector3)
   }
 
   generateCommonCode(): string {
@@ -16,7 +16,7 @@ export class ColorOutputNode extends Node {
   generateCode(): string {
     const inputs = this.getInSockets()
     return `
-    gl_FragColor = ${inputs[0].getVeriableName()};
+    gl_FragColor = vec4(${inputs[0].getVeriableName()}, 1.0);
     `
   }
 }

@@ -15,8 +15,12 @@ function onChange(nodes: NodeProps[], wires: WireProps[]) {
     console.log(nodes, wires)
     prevNodesCount = nodes.length
     prevWireCount = wires.length
-    const graph = createGraphFromInputs(nodes, wires)
-    preview.update(graph)
+    try {
+      const graph = createGraphFromInputs(nodes, wires)
+      preview.update(graph)
+    } catch (e) {
+      console.error(e)
+    }
   }
 }
 

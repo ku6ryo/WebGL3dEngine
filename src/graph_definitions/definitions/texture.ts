@@ -10,6 +10,8 @@ export const textureFactories = [{
       color: NodeColor.Orange,
       inNodeInputSlots: [],
       inSockets: [{
+        label: "Texture",
+      }, {
         label: "UV",
       }],
       outSockets: [{

@@ -128,4 +128,46 @@ export const mathFactories = [{
       }]
     } as NodeBlueprint
   }
+}, {
+  id: NodeTypeId.MathCombine,
+  name: "Math / Combine",
+  factory: () => {
+    return {
+      color: NodeColor.Blue,
+      inNodeInputSlots: [],
+      inSockets: [{
+        label: "R",
+      }, {
+        label: "G",
+      }, {
+        label: "B",
+      }, {
+        label: "A",
+      }],
+      outSockets: [{
+        label: "Vec",
+      }]
+    } as NodeBlueprint
+  }
+}, {
+  id: NodeTypeId.MathSeparate,
+  name: "Math / Separate",
+  factory: () => {
+    return {
+      color: NodeColor.Blue,
+      inNodeInputSlots: [],
+      inSockets: [{
+        label: "Vec",
+      }],
+      outSockets: [{
+        label: "R",
+      }, {
+        label: "G",
+      }, {
+        label: "B",
+      }, {
+        label: "A",
+      }]
+    } as NodeBlueprint
+  }
 }]

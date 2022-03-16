@@ -1,4 +1,4 @@
-import { MouseEventHandler, MouseEvent } from "react"
+import { MouseEventHandler, MouseEvent, useRef, useState } from "react"
 import style from "./style.module.scss"
 import classnames from "classnames"
 
@@ -80,12 +80,15 @@ export function NodeBox({
   onInNodeValueChange,
 }: Props) {
   const width = 150
+  const imageInputRef = useRef<HTMLInputElement | null>(null)
+  const [imageValue, setImageValue] = useState<HTMLImageElement | null>(null)
   const onSocketMouseUpInternal: MouseEventHandler<SVGCircleElement> = (e) => {
     const info = extractInfoFromCircle(e, x, y)
     onSocketMouseUp(id, info.dir, info.i, info.x, info.y)
   }
   const onSocketMouseDownInternal: MouseEventHandler<SVGCircleElement> = (e) => {
     const info = extractInfoFromCircle(e, x, y)
+    console.log(info)
     onSocketMouseDown(id, info.dir, info.i, info.x, info.y)
   }
   const onBoxMouseDown: MouseEventHandler<HTMLDivElement> = (e) => {
@@ -97,6 +100,32 @@ export function NodeBox({
   }
   const onKeyDownInFloatValueInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     e.stopPropagation()
+  }
+  const onImageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const index = Number(e.currentTarget.dataset.index)
+    ;(async () => {
+      const files = e.target.files
+      if (files) {
+        const file = files.item(0)
+        if (file) {
+          var arrayBufferView = new Uint8Array(await file.arrayBuffer())
+          var blob = new Blob( [ arrayBufferView ], { type: "image/jpeg" } );
+          var urlCreator = window.URL || window.webkitURL;
+          var imageUrl = urlCreator.createObjectURL( blob );
+          var img = new Image()
+          img.src = imageUrl;
+          img.onload = () => {
+            onInNodeValueChange(id, index, { image: img })
+            setImageValue(img)
+          }
+        }
+      }
+    })()
+  }
+  const onImageInputRectClick = () => {
+    if (imageInputRef.current) {
+      imageInputRef.current.click()
+    }
   }
   return (
     <g
@@ -136,6 +165,25 @@ export function NodeBox({
                   return (
                     <div className={style.slot}>
                       <input data-index={i} onChange={onFloatValueChange} type="number" onKeyDown={onKeyDownInFloatValueInput}/>
+                    </div>
+                  )
+                }
+                if (t === InNodeInputType.Image) {
+                  return (
+                    <div className={style.slot}>
+                      <div className={style.imageInputRect} onClick={onImageInputRectClick}>
+                        {imageValue && (
+                          <img src={imageValue.src}/>
+                        )}
+                      </div>
+                      <input
+                        data-index={i}
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        onChange={onImageInputChange}
+                        ref={imageInputRef}
+                        className={style.imageInput}
+                      />
                     </div>
                   )
                 }

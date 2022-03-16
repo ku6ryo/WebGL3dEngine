@@ -11,8 +11,9 @@
 
 .box {
   background-color: #3f3f3f;
-  border: 2px solid #111;
+  border: 2px solid #6a6a6a;
   border-radius: 4px;
+  box-sizing: border-box;
   box-shadow: 0 1px 3px 0px rgba(0, 0, 0, 0.8);
   user-select: none;
   overflow: hidden;
@@ -78,5 +79,26 @@
 
   &:hover {
     fill: yellow;
+  }
+}
+
+.imageInput {
+  display: none;
+}
+
+.imageInputRect {
+  background-color: #6a6a6a;
+  cursor: pointer;
+  height: 100px;
+  width: 100px;
+
+  &:hover {
+    opacity: .8;
+  }
+
+  img {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
   }
 }

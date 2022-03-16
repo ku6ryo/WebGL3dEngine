@@ -84,15 +84,41 @@ export function Board({
   const [wires, setWires] = useState<WireProps[]>([])
   const [nodes, setNodes] = useState<NodeProps[]>([])
   const onSocketMouseDown = (id: string, dir: "in" | "out", i: number, x: number, y: number) => {
-    setDrawingWire({
-      direction: dir,
-      nodeId: id,
-      socketIndex: i,
-      x1: x,
-      y1: y,
-      x2: x,
-      y2: y
-    })
+    if (dir === "out") {
+      setDrawingWire({
+        direction: dir,
+        nodeId: id,
+        socketIndex: i,
+        x1: x,
+        y1: y,
+        x2: x,
+        y2: y
+      })
+    } else {
+      const existingWire = wires.find(w => w.nodeId1 === id && w.socketIndex1 === i)
+      if (existingWire) {
+        setWires(wires.filter(w => w !== existingWire))
+        setDrawingWire({
+          direction: "out",
+          nodeId: id,
+          socketIndex: i,
+          x1: existingWire.x1,
+          y1: existingWire.y1,
+          x2: x,
+          y2: y
+        })
+      } else {
+        setDrawingWire({
+          direction: dir,
+          nodeId: id,
+          socketIndex: i,
+          x1: x,
+          y1: y,
+          x2: x,
+          y2: y
+        })
+      }
+    }
   }
   const onSocketMouseUp = (id: string, dir: SocketDirection, i: number, x: number, y: number) => {
     if (drawingWire === null) {
@@ -107,28 +133,31 @@ export function Board({
         {
           nodeId1: drawingWire.nodeId,
           socketIndex1: drawingWire.socketIndex,
-          x1: drawingWire.x1,
-          y1: drawingWire.y1,
           nodeId2: id,
           socketIndex2: i,
-          x2: x,
-          y2: y
-        }
-      ])
-    } else {
-      setWires([
-        ...wires,
-        {
-          nodeId1: id,
-          socketIndex1: i,
           x1: x,
           y1: y,
-          nodeId2: drawingWire.nodeId,
-          socketIndex2: drawingWire.socketIndex,
           x2: drawingWire.x1,
           y2: drawingWire.y1,
         }
       ])
+    } else {
+      const newWire = {
+        nodeId1: id,
+        socketIndex1: i,
+        nodeId2: drawingWire.nodeId,
+        socketIndex2: drawingWire.socketIndex,
+        x1: drawingWire.x1,
+        y1: drawingWire.y1,
+        x2: x,
+        y2: y,
+      }
+      const existingWire = wires.find(w => w.nodeId1 === id && w.socketIndex1 === i)
+      if (existingWire) {
+        setWires(wires.filter(w => w !== existingWire).concat(newWire))
+      } else {
+        setWires([...wires, newWire])
+      }
     }
   }
   // Emit change.
@@ -179,19 +208,19 @@ export function Board({
         if (w.nodeId1 === draggingNode.id) {
           const sw = draggingNode.wires.find(sw => sw.nodeId1 === w.nodeId1 && sw.socketIndex1 === w.socketIndex1)
           if (sw) {
-            const x = sw.x1 + e.clientX - draggingNode.startMouseX 
-            const y = sw.y1 + e.clientY - draggingNode.startMouseY
-            w.x1 = x
-            w.y1 = y
+            const x = sw.x2 + e.clientX - draggingNode.startMouseX 
+            const y = sw.y2 + e.clientY - draggingNode.startMouseY
+            w.x2 = x
+            w.y2 = y
           }
         }
         if (w.nodeId2 === draggingNode.id) {
           const sw = draggingNode.wires.find(sw => sw.nodeId2 === w.nodeId2 && sw.socketIndex2 === w.socketIndex2)
           if (sw) {
-            const x = sw.x2 + e.clientX - draggingNode.startMouseX 
-            const y = sw.y2 + e.clientY - draggingNode.startMouseY
-            w.x2 = x
-            w.y2 = y
+            const x = sw.x1 + e.clientX - draggingNode.startMouseX 
+            const y = sw.y1 + e.clientY - draggingNode.startMouseY
+            w.x1 = x
+            w.y1 = y
           }
         }
         return w
@@ -300,9 +329,9 @@ export function Board({
           />
         ))}
         {drawingWire && (drawingWire.direction == "in" ? (
-          <WireLine x1={drawingWire.x1} y1={drawingWire.y1} x2={drawingWire.x2} y2={drawingWire.y2}/>
-        ) : (
           <WireLine x1={drawingWire.x2} y1={drawingWire.y2} x2={drawingWire.x1} y2={drawingWire.y1}/>
+        ) : (
+          <WireLine x1={drawingWire.x1} y1={drawingWire.y1} x2={drawingWire.x2} y2={drawingWire.y2}/>
         ))}
       </svg>
     </div>
