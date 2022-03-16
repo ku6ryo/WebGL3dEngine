@@ -1,0 +1,82 @@
+
+.frame {
+  overflow: visible; 
+}
+
+.frame.selected {
+  .box {
+    border-color: #fafafa;
+  }
+}
+
+.box {
+  background-color: #3f3f3f;
+  border: 2px solid #111;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px 0px rgba(0, 0, 0, 0.8);
+  user-select: none;
+  overflow: hidden;
+  width: 150px;
+}
+
+.name {
+  background-color: #ccc;
+  box-shadow: 0 0 2px 0 rgba(0, 0, 0, .8);
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  padding: 6px 8px 4px;
+
+  &.orange {
+    background-color: rgb(255, 175, 71);
+  }
+  &.blue {
+    background-color: rgb(71, 151, 255);
+  }
+  &.red {
+    background-color: rgb(255, 92, 71);
+  }
+  &.pink {
+    background-color: rgb(219, 79, 231);
+  }
+  &.purple {
+    background-color: rgb(58, 19, 150);
+  }
+  &.green {
+    background-color: rgb(19, 150, 84);
+  }
+}
+
+.outputs {
+  color: white;
+  font-size: 12px;
+  padding: 8px;
+
+  .row {
+    line-height: 1;
+    padding: 4px 8px;
+    text-align: right;
+  }
+}
+
+.inputs {
+  color: white;
+  font-size: 12px;
+  padding: 8px;
+
+  .row {
+    line-height: 1;
+    padding: 4px 8px;
+  }
+}
+
+.socket {
+  fill: rgb(182, 182, 182);
+  filter: drop-shadow(2px 2px 1px rgba(0, 0, 0, .4));
+  stroke-width: 1px;
+  stroke: #444;
+
+  &:hover {
+    fill: yellow;
+  }
+}

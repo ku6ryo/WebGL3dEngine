@@ -6,19 +6,30 @@ import { DirectionalLight } from "../lights/DirectionalLight";
 export class Program {
   
   #context: WebGLRenderingContext
-  #vertShader: WebGLShader
-  #fragShader: WebGLShader
-  #program: WebGLProgram
+  #vertShader: WebGLShader | null = null
+  #fragShader: WebGLShader | null = null
+  #program: WebGLProgram | null = null
 
   #uniformLocations: { [name: string]: WebGLUniformLocation } = {}
   #textureUniformLocations: { [name: string]: { location: WebGLUniformLocation, index: number }} = {}
   #attributeLocations: { [name: string]: number } = {}
 
+  #programConpileError: string | null = null
+
   constructor(gl: WebGLRenderingContext, vertexShaderSource: string, fragmentShaderSource: string) {
     this.#context = gl
-    this.#vertShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource)
-    this.#fragShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource)
-    this.#program = createProgram(gl, this.#vertShader, this.#fragShader)
+    try {
+      this.#vertShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource)
+      this.#fragShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource)
+      this.#program = createProgram(gl, this.#vertShader, this.#fragShader)
+    } catch(e) {
+      this.#programConpileError = (e as Error).message
+      console.log(e)
+    }
+  }
+
+  hasCompilationError() {
+    return this.#programConpileError !== null
   }
 
   protected getContext() {
@@ -35,6 +46,9 @@ export class Program {
   }
 
   protected createAttributeLocation(name: string) {
+    if (!this.#program) {
+      throw new Error(`program is not created. Maybe compilation error?`)
+    }
     const location = this.#context.getAttribLocation(this.#program, name)
     this.#attributeLocations[name] = location
     return location
@@ -49,6 +63,9 @@ export class Program {
   }
 
   protected createUniformLocation(name: string) {
+    if (!this.#program) {
+      throw new Error(`program is not created. Maybe compilation error?`)
+    }
     const location = this.#context.getUniformLocation(this.#program, name)
     if (!location) {
       throw new Error(`Failed to create an uniform location: ${name}`)

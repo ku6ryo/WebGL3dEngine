@@ -58,7 +58,14 @@ export class Renderer {
 
     things.forEach(t => {
       const m = t.getMaterial()
-      m.getProgramForRender(glContext).draw(camera, t, this.#directionalLights)
+      try {
+        const p = m.getProgramForRender(glContext)
+        if (!p.hasCompilationError()) {
+          p.draw(camera, t, this.#directionalLights)
+        }
+      } catch (e) {
+        console.error("failed to draw")
+      }
     })
   }
 

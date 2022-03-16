@@ -37,9 +37,7 @@ import { PerlinNoiseNode } from "./renderer/materials/ShaderGraphMaterial/graph/
 const stats = new Stats()
 document.body.appendChild(stats.dom)
 
-main()
-
-async function main() {
+export async function main() {
   const w = 960
   const h = 540
   const renderer = new Renderer()

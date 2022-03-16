@@ -1,11 +1,12 @@
-import { BasicProgram } from "../BasicProgram";
 import { Material } from "../Material";
 import { Graph } from "./graph/Graph";
 import { ShaderGraphProgram } from "./ShaderGaraphProgram";
 
 export class ShaderGraphMaterial extends Material {
-  #program: BasicProgram | null = null;
+  #program: ShaderGraphProgram | null = null;
   #graph: Graph;
+
+  #error = false
 
   constructor(graph: Graph) {
     super()
@@ -16,7 +17,17 @@ export class ShaderGraphMaterial extends Material {
     if (this.#program) {
       return this.#program;
     }
-    const program = new ShaderGraphProgram(gl, this.#graph);
-    return program 
+    if (this.#error) {
+      throw new Error("no program")
+    }
+    try {
+      const program = new ShaderGraphProgram(gl, this.#graph);
+      console.log(program)
+      this.#program = program;
+      return program 
+    } catch (e) {
+      this.#error = true
+      throw new Error("no program")
+    }
   }
 }

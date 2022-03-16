@@ -1,5 +1,5 @@
-import vertexShaderSource from "./shader.vert";
-import fragmentShaderSource from "./shader.frag";
+import vertexShaderSource from "./shader.vert?raw";
+import fragmentShaderSource from "./shader.frag?raw";
 import { Camera } from "../../Camera";
 import { Thing } from "../../Thing";
 import LightColorTextureUrl from "./light_color_map.png";

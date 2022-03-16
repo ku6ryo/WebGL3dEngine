@@ -22,19 +22,22 @@ export class ShaderGraphProgram extends BasicProgram {
         })()
       }
     );
-    graph.getNodes().forEach(n => {
-      n.getUniforms().forEach((u) => {
-        const name = u.name
-        if (!name) {
-          throw new Error("Uniform name is not set")
-        }
-        if (u.type === UniformType.Sampler2D) {
-          this.createTextureLocation(name, 0)
-        } else {
-          this.createUniformLocation(name)
-        }
+    if (!this.hasCompilationError()) {
+      graph.getNodes().forEach(n => {
+        n.getUniforms().forEach((u) => {
+          const name = u.name
+          if (!name) {
+            throw new Error("Uniform name is not set")
+          }
+          if (u.type === UniformType.Sampler2D) {
+            this.createTextureLocation(name, 0)
+          } else {
+            this.createUniformLocation(name)
+          }
+        })
       })
-    })
+    }
+    console.log("eeeee")
     this.#graph = graph
   }
 

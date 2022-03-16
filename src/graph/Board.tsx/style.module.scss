@@ -1,0 +1,30 @@
+.frame {
+  background-color: #222;
+  height: 100%;
+  width: 100%;
+}
+
+.board {
+  height: 100%;
+  width: 100%;
+}
+
+.nodeSelector {
+  background-color: #222;
+  color: white;
+  font-size: 12px;
+  left: 0;
+  position: absolute;
+  top: 0;
+  user-select: none;
+
+  .item {
+    border-bottom: 1px solid black;
+    cursor: pointer;
+    padding: 4px;
+
+    &:hover {
+      background-color: #333;
+    }
+  }
+}
