@@ -1,5 +1,5 @@
 import style from "./App.module.scss";
-import { Board, NodeProps, WireProps } from "./graph/Board.tsx";
+import { Board, NodeProps, WireProps } from "./graph/Board";
 import { ShaderPreview } from "./ShaderPreview";
 import { factories } from "./graph_definitions/definitions/factories";
 import { createGraphFromInputs } from "./graph_definitions/createGraphFromInputs";

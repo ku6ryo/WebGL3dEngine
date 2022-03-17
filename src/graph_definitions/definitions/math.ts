@@ -1,6 +1,6 @@
 import { NodeTypeId } from "./NodeTypeId"
 import { NodeColor } from "../../graph/NodeBox"
-import { NodeBlueprint } from "../../graph/Board.tsx"
+import { NodeBlueprint } from "../../graph/Board"
 
 export const mathFactories = [{
   id: NodeTypeId.MathAdd,
@@ -72,7 +72,9 @@ export const mathFactories = [{
       color: NodeColor.Blue,
       inNodeInputSlots: [],
       inSockets: [{
-        label: "Value",
+        label: "Value 1",
+      }, {
+        label: "Value 2",
       }],
       outSockets: [{
         label: "Result",

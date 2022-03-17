@@ -92,7 +92,9 @@ export function NodeBox({
     onSocketMouseDown(id, info.dir, info.i, info.x, info.y)
   }
   const onBoxMouseDown: MouseEventHandler<HTMLDivElement> = (e) => {
-    onDragStart(id, e.clientX, e.clientY)
+    if (e.button === 0) {
+      onDragStart(id, e.clientX, e.clientY)
+    }
   }
   const onFloatValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const index = Number(e.currentTarget.dataset.index)
