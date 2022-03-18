@@ -1,6 +1,7 @@
 import { MouseEventHandler, MouseEvent, useRef, useState, memo, useCallback, ChangeEventHandler, KeyboardEventHandler, useEffect } from "react"
 import style from "./style.module.scss"
 import classnames from "classnames"
+import { FloatInput } from "./FloatInput"
 
 export type SocketDirection = "in" | "out"
 
@@ -202,6 +203,9 @@ export const NodeBox = memo(function NodeBox({
                 />
               </div>
             ))}
+          </div>
+          <div className={style.floatInput}>
+            <FloatInput />
           </div>
           {inNodeInputSlots.length > 0 && (
             <div className={style.inValueSlots}>
