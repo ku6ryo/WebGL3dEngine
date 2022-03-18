@@ -2,6 +2,7 @@ import React, { MouseEventHandler, useEffect, useRef, useState } from "react";
 import { NodeBox, InSocket, OutSocket, SocketDirection, NodeColor, InNodeInputType, InNodeInputValue } from "../NodeBox";
 import { WireLine } from "../WireLine";
 import style from "./style.module.scss"
+import classnames from "classnames"
 
 export type NodeProps = {
   id: string,
@@ -25,6 +26,15 @@ type DraggingNodeStats = {
   startMouseY: number,
   // Wires connected when dragging started.
   wires: WireProps[]
+}
+
+type DrawingRectStats = {
+  startX: number,
+  startY: number,
+  x: number
+  y: number
+  width: number
+  height: number
 }
 
 export type WireProps = {
@@ -105,6 +115,7 @@ export function Board({
   const [draggingBoard, setDraggingBoard] = useState<DraggingBoardStats | null>(null)
   const [drawingWire, setDrawingWire] = useState<DrawingWireStats | null>(null)
   const [draggingNode, setDraggingNode] = useState<DraggingNodeStats | null>(null)
+  const [drawingRect, setDrawingRect] = useState<DrawingRectStats | null>(null)
   const [wires, setWires] = useState<WireProps[]>([])
   const [nodes, setNodes] = useState<NodeProps[]>([])
   const onSocketMouseDown = (id: string, dir: "in" | "out", i: number, x: number, y: number) => {
@@ -145,10 +156,7 @@ export function Board({
     }
   }
   const onSocketMouseUp = (id: string, dir: SocketDirection, i: number, x: number, y: number) => {
-    if (drawingWire === null) {
-      return
-    }
-    if (drawingWire.startNodeId === id || drawingWire.startDirection === dir) {
+    if (drawingWire === null || drawingWire.startNodeId === id || drawingWire.startDirection === dir) {
       return
     }
     if (drawingWire.startDirection === "in") {
@@ -183,6 +191,7 @@ export function Board({
         setWires([...wires, newWire])
       }
     }
+    setDrawingWire(null)
   }
   // Emit change.
   useEffect(() => {
@@ -254,6 +263,19 @@ export function Board({
         centerY: y,
       })
     }
+    if (drawingRect && svgRootRef.current) {
+      const svgRect = svgRootRef.current.getBoundingClientRect()
+      const { startX, startY } = drawingRect
+      const mx = (e.clientX - svgRect.x + board.centerX - board.width / 2) / board.zoom
+      const my = (e.clientY - svgRect.y + board.centerY - board.height / 2) / board.zoom
+      setDrawingRect({
+        ...drawingRect,
+        x: Math.min(startX, mx),
+        y: Math.min(startY, my),
+        width: Math.abs(startX - mx),
+        height: Math.abs(startY - my),
+      })
+    }
   }
   const onMouseUp = (e: React.MouseEvent<SVGSVGElement>) => {
     if (e.target === svgRootRef.current) {
@@ -262,6 +284,20 @@ export function Board({
     setDrawingWire(null)
     setDraggingNode(null)
     setDraggingBoard(null)
+    if (drawingRect) {
+      setNodes(nodes.map(n => {
+        if (
+          drawingRect.startX < n.x && n.x < drawingRect.x + drawingRect.width &&
+          drawingRect.startY < n.y && n.y < drawingRect.y + drawingRect.height
+        ) {
+          n.selected = true
+        } else {
+          n.selected = false
+        }
+        return n
+      }))
+    }
+    setDrawingRect(null)
   }
   const onMouseEnter = (e: React.MouseEvent<SVGSVGElement>) => {
     setCursorOnBoard(true)
@@ -271,6 +307,7 @@ export function Board({
     setDrawingWire(null)
     setDraggingNode(null)
     setDraggingBoard(null)
+    setDrawingRect(null)
   }
   const onMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
     // Wheel button
@@ -280,6 +317,19 @@ export function Board({
         startY: board.centerY,
         startMouseX: e.clientX,
         startMouseY: e.clientY,
+      })
+    }
+    if (e.button == 0 && svgRootRef.current) {
+      const svgRect = svgRootRef.current.getBoundingClientRect()
+      const x = (e.clientX - svgRect.x + board.centerX - board.width / 2) / board.zoom
+      const y = (e.clientY - svgRect.y + board.centerY - board.height / 2) / board.zoom
+      setDrawingRect({
+        startX: x,
+        startY: y,
+        x: x,
+        y: y,
+        width: 0,
+        height: 0,
       })
     }
   }
@@ -311,9 +361,14 @@ export function Board({
   useEffect(() => {
     const keydownListener = (e: KeyboardEvent) => {
       if (e.code === "Delete" || e.code === "Backspace") {
-        const target = nodes.find(n => n.selected)
-        setNodes(nodes.filter(n => n !== target))
-        setWires(wires.filter(w => w.inNodeId != target?.id && w.outNodeId != target?.id))
+        const nodesToKeep = nodes.filter(n => !n.selected)
+        const nodesToRemove = nodes.filter(n => n.selected)
+        setNodes(nodesToKeep)
+        setWires(wires.filter(w => {
+          return !nodesToRemove.find(n => {
+            return w.inNodeId === n.id || w.outNodeId === n.id
+          })
+        }))
       }
       if (e.code === "Escape") {
         setNodes(nodes.map(n => { n.selected = false; return n }))
@@ -333,6 +388,11 @@ export function Board({
     }
     const resizeListener = () => {
       if (svgRootRef.current) {
+        setBoard({
+          ...board,
+          height: svgRootRef.current.clientHeight,
+          width: svgRootRef.current.clientWidth,
+        })
       }
     }
     window.addEventListener("keydown", keydownListener)
@@ -374,7 +434,10 @@ export function Board({
         ))}
       </div>
       <svg
-        className={style.board}
+        className={classnames({
+          [style.board]: true,
+          [style.grabbing]: !!draggingNode
+        })}
         ref={svgRootRef}
         viewBox={`${(board.centerX - board.width / 2) / board.zoom} ${(board.centerY - board.height / 2) / board.zoom} ${board.width / board.zoom} ${board.height / board.zoom}`}
         onMouseMove={onMouseMove}
@@ -415,6 +478,19 @@ export function Board({
         ) : (
           <WireLine x1={drawingWire.startX} y1={drawingWire.startY} x2={drawingWire.movingX} y2={drawingWire.movingY}/>
         ))}
+        {drawingRect && (
+          <rect
+            x={drawingRect.x}
+            y={drawingRect.y}
+            width={drawingRect.width}
+            height={drawingRect.height}
+            fill="rgba(255, 255, 255, 0.1)"
+            stroke="white"
+            strokeWidth={2 / board.zoom}
+            strokeLinecap="round"
+            stroke-dasharray={`${4 / board.zoom} ${4 / board.zoom}`}
+          />
+        )}
       </svg>
     </div>
   )

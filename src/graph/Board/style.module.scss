@@ -12,6 +12,11 @@
   height: 100%;
   position: relative;
   width: calc(100% - 130px);
+
+
+  &.grabbing {
+    cursor: grabbing;
+  }
 }
 
 .nodeSelector {

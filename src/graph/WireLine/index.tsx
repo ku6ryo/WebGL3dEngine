@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, memo } from "react"
 import style from "./style.module.scss"
 
 type Props = {
@@ -8,7 +8,7 @@ type Props = {
   y2: number,
 }
 
-export function WireLine({
+export const WireLine = memo(function WireLine({
   x1,
   y1,
   x2,
@@ -29,4 +29,4 @@ export function WireLine({
       strokeLinecap="round"
     />
   )
-}
+})

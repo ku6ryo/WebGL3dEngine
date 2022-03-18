@@ -4,7 +4,7 @@ import { NodeBlueprint } from "../../graph/Board"
 
 export const mathFactories = [{
   id: NodeTypeId.MathAdd,
-  name: "Math / Add",
+  name: "Add",
   factory: () => {
     return {
       color: NodeColor.Blue,
@@ -36,7 +36,7 @@ export const mathFactories = [{
   }
 }, {
   id: NodeTypeId.MathCosine,
-  name: "Math / Cosine",
+  name: "Cosine",
   factory: () => {
     return {
       color: NodeColor.Blue,

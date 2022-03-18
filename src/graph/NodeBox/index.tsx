@@ -1,4 +1,4 @@
-import { MouseEventHandler, MouseEvent, useRef, useState } from "react"
+import { MouseEventHandler, MouseEvent, useRef, useState, memo, useCallback, ChangeEventHandler, KeyboardEventHandler } from "react"
 import style from "./style.module.scss"
 import classnames from "classnames"
 
@@ -48,23 +48,27 @@ type Props = {
   onInNodeValueChange: (id: string, i: number, value: InNodeInputValue) => void,
 }
 
-function extractInfoFromCircle(e: MouseEvent<SVGCircleElement>, x: number, y: number) {
-  const i = Number(e.currentTarget.dataset.socketIndex)
-  const dir = e.currentTarget.dataset.socketDirection
-  const cx = e.currentTarget.cx.baseVal.value
-  const cy = e.currentTarget.cy.baseVal.value
-  // global coordinates
-  const gx = x + cx
-  const gy = y + cy
+function extractInfoFromCircle(e: MouseEvent<HTMLElement>, x: number, y: number, frame: SVGForeignObjectElement) {
+  const circle = e.currentTarget
+  const circleRect = circle.getBoundingClientRect()
+  const frameRect = frame.getBoundingClientRect()
+  const fx = frameRect.x
+  const fy = frameRect.y
+  const i = Number(circle.dataset.socketIndex)
+  const dir = circle.dataset.socketDirection as SocketDirection
+  const cx = circleRect.x + circleRect.width / 2
+  const cy = circleRect.y + circleRect.height / 2
+  const gx = x + cx - fx
+  const gy = y + cy - fy
   return {
     i,
     dir: dir as SocketDirection,
-    x: gx,
-    y: gy,
+    boardX: gx,
+    boardY: gy,
   }
 }
 
-export function NodeBox({
+export const NodeBox = memo(function NodeBox({
   id,
   name,
   color,
@@ -79,30 +83,44 @@ export function NodeBox({
   onDragStart,
   onInNodeValueChange,
 }: Props) {
-  const width = 150
   const imageInputRef = useRef<HTMLInputElement | null>(null)
   const [imageValue, setImageValue] = useState<HTMLImageElement | null>(null)
-  const onSocketMouseUpInternal: MouseEventHandler<SVGCircleElement> = (e) => {
-    const info = extractInfoFromCircle(e, x, y)
-    onSocketMouseUp(id, info.dir, info.i, info.x, info.y)
-  }
-  const onSocketMouseDownInternal: MouseEventHandler<SVGCircleElement> = (e) => {
-    const info = extractInfoFromCircle(e, x, y)
-    console.log(info)
-    onSocketMouseDown(id, info.dir, info.i, info.x, info.y)
-  }
-  const onBoxMouseDown: MouseEventHandler<HTMLDivElement> = (e) => {
+  const frameRef = useRef<SVGForeignObjectElement | null>(null)
+
+  const onSocketMouseUpInternal: MouseEventHandler<HTMLDivElement> = useCallback((e) => {
+    if (!frameRef.current) {
+      return
+    }
+    e.stopPropagation()
+    const { i, dir, boardX, boardY } = extractInfoFromCircle(e, x, y, frameRef.current)
+    onSocketMouseUp(id, dir, i, boardX, boardY)
+  }, [id, x, y, onSocketMouseUp, frameRef.current])
+
+  const onSocketMouseDownInternal: MouseEventHandler<HTMLDivElement> = useCallback((e) => {
+    if (!frameRef.current) {
+      return
+    }
+    e.stopPropagation()
+    const { i, dir, boardX, boardY } = extractInfoFromCircle(e, x, y, frameRef.current)
+    onSocketMouseDown(id, dir, i, boardX, boardY)
+  }, [id, x, y, onSocketMouseDown, frameRef.current])
+
+  const onBoxMouseDown: MouseEventHandler<HTMLDivElement> = useCallback((e) => {
     if (e.button === 0) {
+      e.stopPropagation()
       onDragStart(id, e.clientX, e.clientY)
     }
-  }
-  const onFloatValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  }, [id, onDragStart])
+
+  const onFloatValueChange: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
     const index = Number(e.currentTarget.dataset.index)
     onInNodeValueChange(id, index, { float: Number(e.currentTarget.value) })
-  }
-  const onKeyDownInFloatValueInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  }, [id, onInNodeValueChange])
+
+  const onKeyDownInFloatValueInput: KeyboardEventHandler<HTMLInputElement> = useCallback((e) => {
     e.stopPropagation()
-  }
+  }, [])
+
   const onImageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const index = Number(e.currentTarget.dataset.index)
     ;(async () => {
@@ -134,6 +152,7 @@ export function NodeBox({
       transform={`translate(${x}, ${y})`}
     >
       <foreignObject
+        ref={frameRef}
         width={1}
         height={1}
         className={classnames({
@@ -157,6 +176,13 @@ export function NodeBox({
                 key={i}
               >
                 <div>{socket.label}</div>
+                <div
+                  className={style.socket}
+                  data-socket-index={i}
+                  data-socket-direction="out"
+                  onMouseDown={onSocketMouseDownInternal}
+                  onMouseUp={onSocketMouseUpInternal}
+                />
               </div>
             ))}
           </div>
@@ -198,38 +224,19 @@ export function NodeBox({
                 className={style.row}
                 key={i}
               >
+                <div
+                  className={style.socket}
+                  data-socket-index={i}
+                  data-socket-direction="in"
+                  onMouseDown={onSocketMouseDownInternal}
+                  onMouseUp={onSocketMouseUpInternal}
+                />
                 <div>{socket.label}</div>
               </div>
             ))}
           </div>
         </div>
       </foreignObject>
-      {inSockets.map((_, i) => (
-        <circle
-          key={i}
-          data-socket-index={i}
-          data-socket-direction="in"
-          className={style.socket}
-          cx={0}
-          cy={78 + outSockets.length * 20 + (i - 1) * 20}
-          r={4}
-          onMouseDown={onSocketMouseDownInternal}
-          onMouseUp={onSocketMouseUpInternal}
-        />
-      ))}
-      {outSockets.map((_, i) => (
-        <circle
-          key={i}
-          data-socket-index={i}
-          data-socket-direction="out"
-          className={style.socket}
-          cx={width}
-          cy={40 + i * 20}
-          r={4}
-          onMouseDown={onSocketMouseDownInternal}
-          onMouseUp={onSocketMouseUpInternal}
-        />
-      ))}
     </g>
   )
-}
+})
