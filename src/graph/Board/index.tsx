@@ -344,8 +344,8 @@ export function Board({
     if (drawingRect) {
       const newNodes = nodes.map(n => {
         if (
-          drawingRect.startX < n.x && n.x < drawingRect.x + drawingRect.width &&
-          drawingRect.startY < n.y && n.y < drawingRect.y + drawingRect.height
+          drawingRect.x < n.x && n.x < drawingRect.x + drawingRect.width &&
+          drawingRect.y < n.y && n.y < drawingRect.y + drawingRect.height
         ) {
           n.selected = true
         } else {
