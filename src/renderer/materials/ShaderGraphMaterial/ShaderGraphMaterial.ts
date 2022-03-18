@@ -22,7 +22,6 @@ export class ShaderGraphMaterial extends Material {
     }
     try {
       const program = new ShaderGraphProgram(gl, this.#graph);
-      console.log(program)
       this.#program = program;
       return program 
     } catch (e) {

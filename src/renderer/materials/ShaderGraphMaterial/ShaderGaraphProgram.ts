@@ -37,7 +37,6 @@ export class ShaderGraphProgram extends BasicProgram {
         })
       })
     }
-    console.log("eeeee")
     this.#graph = graph
   }
 

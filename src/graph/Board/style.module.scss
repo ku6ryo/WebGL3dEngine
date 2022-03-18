@@ -1,18 +1,16 @@
 .frame {
   background-color: #222;
-  background-image:  linear-gradient(#090909 0.6000000000000001px, transparent 0.6000000000000001px), linear-gradient(to right, #090909 0.6000000000000001px, #222 0.6000000000000001px);
+  background-image: linear-gradient(#090909 0.6000000000000001px, transparent 0.6000000000000001px), linear-gradient(to right, #090909 0.6000000000000001px, #222 0.6000000000000001px);
   background-size: 12px 12px;
   height: 100%;
   width: 100%;
 }
 
 .board {
-  position: absolute;
-  left: 130px;
   height: 100%;
+  left: 130px;
   position: relative;
   width: calc(100% - 130px);
-
 
   &.grabbing {
     cursor: grabbing;

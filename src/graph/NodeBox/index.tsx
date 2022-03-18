@@ -48,7 +48,7 @@ type Props = {
   onInNodeValueChange: (id: string, i: number, value: InNodeInputValue) => void,
 }
 
-function extractInfoFromCircle(e: MouseEvent<HTMLElement>, x: number, y: number, frame: SVGForeignObjectElement) {
+function extractInfoFromCircle(e: MouseEvent<HTMLElement>, frame: SVGForeignObjectElement) {
   const circle = e.currentTarget
   const circleRect = circle.getBoundingClientRect()
   const frameRect = frame.getBoundingClientRect()
@@ -58,13 +58,14 @@ function extractInfoFromCircle(e: MouseEvent<HTMLElement>, x: number, y: number,
   const dir = circle.dataset.socketDirection as SocketDirection
   const cx = circleRect.x + circleRect.width / 2
   const cy = circleRect.y + circleRect.height / 2
-  const gx = x + cx - fx
-  const gy = y + cy - fy
+  const x = cx - fx
+  const y = cy - fy
   return {
     i,
     dir: dir as SocketDirection,
-    boardX: gx,
-    boardY: gy,
+    // releative to frame and not considering zoom.
+    socketX: x,
+    socketY: y,
   }
 }
 
@@ -92,8 +93,8 @@ export const NodeBox = memo(function NodeBox({
       return
     }
     e.stopPropagation()
-    const { i, dir, boardX, boardY } = extractInfoFromCircle(e, x, y, frameRef.current)
-    onSocketMouseUp(id, dir, i, boardX, boardY)
+    const { i, dir, socketX, socketY } = extractInfoFromCircle(e, frameRef.current)
+    onSocketMouseUp(id, dir, i, socketX, socketY)
   }, [id, x, y, onSocketMouseUp, frameRef.current])
 
   const onSocketMouseDownInternal: MouseEventHandler<HTMLDivElement> = useCallback((e) => {
@@ -101,8 +102,8 @@ export const NodeBox = memo(function NodeBox({
       return
     }
     e.stopPropagation()
-    const { i, dir, boardX, boardY } = extractInfoFromCircle(e, x, y, frameRef.current)
-    onSocketMouseDown(id, dir, i, boardX, boardY)
+    const { i, dir, socketX, socketY } = extractInfoFromCircle(e, frameRef.current)
+    onSocketMouseDown(id, dir, i, socketX, socketY)
   }, [id, x, y, onSocketMouseDown, frameRef.current])
 
   const onBoxMouseDown: MouseEventHandler<HTMLDivElement> = useCallback((e) => {

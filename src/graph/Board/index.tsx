@@ -1,8 +1,9 @@
-import React, { MouseEventHandler, useEffect, useRef, useState } from "react";
+import React, { MouseEventHandler, useEffect, useMemo, useRef, useState } from "react";
 import { NodeBox, InSocket, OutSocket, SocketDirection, NodeColor, InNodeInputType, InNodeInputValue } from "../NodeBox";
 import { WireLine } from "../WireLine";
 import style from "./style.module.scss"
 import classnames from "classnames"
+import { HistoryManager } from "./HistoryManager";
 
 export type NodeProps = {
   id: string,
@@ -19,13 +20,10 @@ export type NodeProps = {
 }
 
 type DraggingNodeStats = {
-  id: string,
-  startX: number,
-  startY: number,
   startMouseX: number,
   startMouseY: number,
-  // Wires connected when dragging started.
-  wires: WireProps[]
+  nodes: { [id: string]: NodeProps },
+  wires: { [key: string]: WireProps },
 }
 
 type DrawingRectStats = {
@@ -38,6 +36,7 @@ type DrawingRectStats = {
 }
 
 export type WireProps = {
+  id: string,
   inNodeId: string,
   outNodeId: string,
   inSocketIndex: number,
@@ -59,8 +58,8 @@ type DrawingWireStats = {
 }
 
 type DraggingBoardStats = {
-  startX: number,
-  startY: number,
+  startCenterX: number,
+  startCenterY: number,
   startMouseX: number,
   startMouseY: number,
 }
@@ -118,39 +117,60 @@ export function Board({
   const [drawingRect, setDrawingRect] = useState<DrawingRectStats | null>(null)
   const [wires, setWires] = useState<WireProps[]>([])
   const [nodes, setNodes] = useState<NodeProps[]>([])
-  const onSocketMouseDown = (id: string, dir: "in" | "out", i: number, x: number, y: number) => {
+
+  const historyManager = useMemo(() => new HistoryManager(), [])
+
+  const goToPrevHistory = () => {
+    const history = historyManager.goBack()
+    if (!history) {
+      console.log("No history to go back to")
+      return
+    }
+    const nodes = Object.values(history.nodes)
+    const wires = Object.values(history.wires)
+    setNodes(nodes)
+    setWires(wires)
+  }
+
+  const onSocketMouseDown = (id: string, dir: SocketDirection, i: number, x: number, y: number) => {
+    const node = nodes.find(n => n.id === id)
+    if (!node) {
+      return
+    }
+    const zoomedX = x / board.zoom + node.x
+    const zoomedY = y / board.zoom + node.y
     if (dir === "out") {
       setDrawingWire({
         startDirection: dir,
         startNodeId: id,
         startSocketIndex: i,
-        startX: x,
-        startY: y,
-        movingX: x,
-        movingY: y
+        startX: zoomedX,
+        startY: zoomedY,
+        movingX: zoomedX,
+        movingY: zoomedY
       })
     } else {
-      const existingWire = wires.find(w => w.inNodeId === id && w.inSocketIndex === i)
+      const existingWire = wires.find(w => w.outNodeId === id && w.outSocketIndex === i)
       if (existingWire) {
         setWires(wires.filter(w => w !== existingWire))
         setDrawingWire({
           startDirection: "out",
-          startNodeId: id,
-          startSocketIndex: i,
+          startNodeId: existingWire.inNodeId,
+          startSocketIndex: existingWire.inSocketIndex,
           startX: existingWire.inX,
           startY: existingWire.inY,
-          movingX: x,
-          movingY: y
+          movingX: zoomedX,
+          movingY: zoomedY
         })
       } else {
         setDrawingWire({
           startDirection: dir,
           startNodeId: id,
           startSocketIndex: i,
-          startX: x,
-          startY: y,
-          movingX: x,
-          movingY: y
+          startX: zoomedX,
+          startY: zoomedY,
+          movingX: zoomedX,
+          movingY: zoomedY
         })
       }
     }
@@ -159,104 +179,144 @@ export function Board({
     if (drawingWire === null || drawingWire.startNodeId === id || drawingWire.startDirection === dir) {
       return
     }
+    const node = nodes.find(n => n.id === id)
+    if (!node) {
+      return
+    }
+    const zoomedX = x / board.zoom + node.x
+    const zoomedY = y / board.zoom + node.y
+    let newWires: WireProps[] = []
     if (drawingWire.startDirection === "in") {
-      setWires([
+      newWires = [
         ...wires,
         {
-          inNodeId: drawingWire.startNodeId,
-          inSocketIndex: drawingWire.startSocketIndex,
-          outNodeId: id,
-          outSocketIndex: i,
-          inX: x,
-          inY: y,
+          id: "w" + generateNodeId(),
+          inNodeId: id,
+          inSocketIndex: i,
+          outNodeId: drawingWire.startNodeId,
+          outSocketIndex: drawingWire.startSocketIndex,
+          inX: zoomedX,
+          inY: zoomedY,
           outX: drawingWire.startX,
           outY: drawingWire.startY,
         }
-      ])
+      ]
     } else {
       const newWire = {
-        inNodeId: id,
-        inSocketIndex: i,
-        outNodeId: drawingWire.startNodeId,
-        outSocketIndex: drawingWire.startSocketIndex,
+        id: "w" + generateNodeId(),
+        inNodeId: drawingWire.startNodeId,
+        inSocketIndex: drawingWire.startSocketIndex,
+        outNodeId: id,
+        outSocketIndex: i,
         inX: drawingWire.startX,
         inY: drawingWire.startY,
-        outX: x,
-        outY: y,
+        outX: zoomedX,
+        outY: zoomedY,
       }
-      const existingWire = wires.find(w => w.inNodeId === id && w.inSocketIndex === i)
+      const existingWire = wires.find(w => w.outNodeId === id && w.outSocketIndex === i)
       if (existingWire) {
-        setWires(wires.filter(w => w !== existingWire).concat(newWire))
+        newWires = wires.filter(w => w !== existingWire).concat(newWire)
       } else {
-        setWires([...wires, newWire])
+        newWires = [...wires, newWire]
       }
     }
+    setWires(newWires)
+    historyManager.save(nodes, newWires)
     setDrawingWire(null)
   }
-  // Emit change.
-  useEffect(() => {
-    onChange(nodes, wires)
-  }, [nodes, wires])
-  const onNodeDragStart = (id: string, x: number, y: number) => {
-    const t = nodes.find(n => n.id === id)
-    if (t) {
-      t.selected = true
-      setDraggingNode({
-        id,
-        startX: t.x,
-        startY: t.y,
-        startMouseX: x,
-        startMouseY: y,
-        wires: wires.filter(w => w.inNodeId === id || w.outNodeId === id).map(w => ({...w}))
+
+  const onNodeDragStart = (id: string, mouseX: number, mouseY: number) => {
+    const targetNode = nodes.find(n => n.id === id)
+    if (targetNode) {
+      // Wheel button
+      if (!svgRootRef.current) {
+        return
+      }
+      const svgRect = svgRootRef.current.getBoundingClientRect()
+      const mouseOnBoardX = mouseX - svgRect.x
+      const mouseOnBoardY = mouseY - svgRect.y
+      if (!targetNode.selected) {
+        nodes.forEach(n => {
+          n.selected = false
+        })
+      }
+      targetNode.selected = true
+      const nodesToSave: { [key: string]: NodeProps } = {}
+      nodes.forEach(n => {
+        nodesToSave[n.id] = {...n}
       })
-      const newArray = nodes.filter(n => t !== n).map(n => { n.selected = false; return n })
-      newArray.push(t)
-      setNodes(newArray)
+      const wiresToSave: { [key: string]: WireProps } = {}
+      wires.forEach(n => {
+        wiresToSave[n.id] = {...n}
+      })
+      setDraggingNode({
+        startMouseX: mouseOnBoardX,
+        startMouseY: mouseOnBoardY,
+        nodes: nodesToSave,
+        wires: wiresToSave,
+      })
+      const newNodes = [...nodes]
+      const newWires = [...wires]
+      setNodes(newNodes)
+      setWires(newWires)
     }
   }
+
   const onMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!svgRootRef.current) {
+      return
+    }
+    const svgRect = svgRootRef.current.getBoundingClientRect()
+    const mouseX = e.clientX - svgRect.x
+    const mouseY = e.clientY - svgRect.y
+    const boardX = (mouseX + board.centerX - board.width / 2) / board.zoom
+    const boardY = (mouseY + board.centerY - board.height / 2) / board.zoom
+
     if (drawingWire) {
-      const t = e.currentTarget
-      const x = (board.centerX + e.clientX - t.getBoundingClientRect().left - board.width / 2) / board.zoom
-      const y = (board.centerY + e.clientY - t.getBoundingClientRect().top - board.height / 2) / board.zoom
       setDrawingWire({
         ...drawingWire,
-        movingX: x + (drawingWire.startDirection === "in" ? 1 : -1) * 2,
-        movingY: y,
+        movingX: boardX + (drawingWire.startDirection === "in" ? 1 : -1) * 3 / board.zoom,
+        movingY: boardY,
       })
     }
-    if (draggingNode !== null) {
-      const t = nodes.find(n => n.id === draggingNode.id)
-      if (t) {
-        const x = (e.clientX - draggingNode.startMouseX) / board.zoom + draggingNode.startX
-        const y = (e.clientY - draggingNode.startMouseY) / board.zoom + draggingNode.startY
-        setNodes(nodes.map(n => n.id === draggingNode.id ? { ...n, x, y } : n))
-      }
-      setWires(wires.map(w => {
-        if (w.inNodeId === draggingNode.id) {
-          const sw = draggingNode.wires.find(sw => sw.inNodeId === w.inNodeId && sw.inSocketIndex === w.inSocketIndex)
-          if (sw) {
-            const x = sw.outX + (e.clientX - draggingNode.startMouseX) / board.zoom
-            const y = sw.outY + (e.clientY - draggingNode.startMouseY) / board.zoom
-            w.outX = x
-            w.outY = y
-          }
+
+    if (draggingNode) {
+      const dMouseX = mouseX - draggingNode.startMouseX
+      const dMouseY = mouseY - draggingNode.startMouseY
+      const savedNodes = draggingNode.nodes
+      const savedWires = draggingNode.wires
+      const updatedNodes = nodes.map(n => {
+        if (!n.selected) {
+          return n
         }
-        if (w.outNodeId === draggingNode.id) {
-          const sw = draggingNode.wires.find(sw => sw.outNodeId === w.outNodeId && sw.outSocketIndex === w.outSocketIndex)
-          if (sw) {
-            const x = sw.inX + (e.clientX - draggingNode.startMouseX) / board.zoom
-            const y = sw.inY + (e.clientY - draggingNode.startMouseY) / board.zoom
-            w.inX = x
-            w.inY = y
-          }
+        const lastNode = savedNodes[n.id]
+        if (!lastNode) {
+          throw new Error("no last node ... might be a bug")
         }
-        return w
-      }))
+        n.x = lastNode.x + dMouseX / board.zoom
+        n.y = lastNode.y + dMouseY / board.zoom
+        wires.forEach(w => {
+          const lastWire = savedWires[w.id]
+          if (!lastWire) {
+            throw new Error("no last wire ... might be a bug")
+          }
+          if (w.inNodeId === n.id) {
+            w.inX = lastWire.inX + dMouseX / board.zoom
+            w.inY = lastWire.inY + dMouseY / board.zoom
+          }
+          if (w.outNodeId === n.id) {
+            w.outX = lastWire.outX + dMouseX / board.zoom
+            w.outY = lastWire.outY + dMouseY / board.zoom
+          }
+        })
+        return n
+      })
+      setNodes(updatedNodes)
+      setWires([...wires])
     }
     if (draggingBoard) {
-      const x = draggingBoard.startX - (e.clientX - draggingBoard.startMouseX) / board.zoom
-      const y = draggingBoard.startY - (e.clientY - draggingBoard.startMouseY) / board.zoom
+      const x = draggingBoard.startCenterX - (mouseX - draggingBoard.startMouseX)
+      const y = draggingBoard.startCenterY - (mouseY - draggingBoard.startMouseY)
       setBoard({
         ...board,
         centerX: x,
@@ -264,28 +324,25 @@ export function Board({
       })
     }
     if (drawingRect && svgRootRef.current) {
-      const svgRect = svgRootRef.current.getBoundingClientRect()
       const { startX, startY } = drawingRect
-      const mx = (e.clientX - svgRect.x + board.centerX - board.width / 2) / board.zoom
-      const my = (e.clientY - svgRect.y + board.centerY - board.height / 2) / board.zoom
       setDrawingRect({
         ...drawingRect,
-        x: Math.min(startX, mx),
-        y: Math.min(startY, my),
-        width: Math.abs(startX - mx),
-        height: Math.abs(startY - my),
+        x: Math.min(startX, boardX),
+        y: Math.min(startY, boardY),
+        width: Math.abs(startX - boardX),
+        height: Math.abs(startY - boardY),
       })
     }
   }
   const onMouseUp = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (e.target === svgRootRef.current) {
-      setNodes(nodes.map(n => { n.selected = false; return n }))
-    }
     setDrawingWire(null)
-    setDraggingNode(null)
+    if (draggingNode) {
+      historyManager.save(nodes, wires)
+      setDraggingNode(null)
+    }
     setDraggingBoard(null)
     if (drawingRect) {
-      setNodes(nodes.map(n => {
+      const newNodes = nodes.map(n => {
         if (
           drawingRect.startX < n.x && n.x < drawingRect.x + drawingRect.width &&
           drawingRect.startY < n.y && n.y < drawingRect.y + drawingRect.height
@@ -295,7 +352,11 @@ export function Board({
           n.selected = false
         }
         return n
-      }))
+      })
+      setNodes(newNodes)
+    } else if (e.target === svgRootRef.current) {
+      const newNodes = nodes.map(n => { n.selected = false; return n })
+      setNodes(newNodes)
     }
     setDrawingRect(null)
   }
@@ -311,14 +372,24 @@ export function Board({
   }
   const onMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
     // Wheel button
+    if (!svgRootRef.current) {
+      return
+    }
+    const svgRect = svgRootRef.current.getBoundingClientRect()
+    const mouseX = e.clientX - svgRect.x
+    const mouseY = e.clientY - svgRect.y
+
+    // Start dragging board
     if (e.button == 1) {
       setDraggingBoard({
-        startX: board.centerX,
-        startY: board.centerY,
-        startMouseX: e.clientX,
-        startMouseY: e.clientY,
+        startCenterX: board.centerX,
+        startCenterY: board.centerY,
+        startMouseX: mouseX,
+        startMouseY: mouseY,
       })
     }
+
+    // Start drawing selection rect
     if (e.button == 0 && svgRootRef.current) {
       const svgRect = svgRootRef.current.getBoundingClientRect()
       const x = (e.clientX - svgRect.x + board.centerX - board.width / 2) / board.zoom
@@ -333,12 +404,13 @@ export function Board({
       })
     }
   }
+
   const onNodeAdd: MouseEventHandler<HTMLDivElement> = (e) => {
     const typeId = e.currentTarget.dataset.nodeTypeId
     const f = factories.find(f => f.id === typeId)
     if (f) {
       const n = f.factory()
-      setNodes([
+      const newNodes = [
         ...nodes,
         {
           id: f.id + generateNodeId(),
@@ -353,11 +425,14 @@ export function Board({
           inSockets: n.inSockets,
           outSockets: n.outSockets,
         }
-      ])
+      ]
+      historyManager.save(newNodes, wires)
+      setNodes(newNodes)
     } else {
       throw new Error("No factory found for node type " + typeId)
     }
   }
+
   useEffect(() => {
     const keydownListener = (e: KeyboardEvent) => {
       if (e.code === "Delete" || e.code === "Backspace") {
@@ -373,9 +448,12 @@ export function Board({
       if (e.code === "Escape") {
         setNodes(nodes.map(n => { n.selected = false; return n }))
       }
+      if (e.code === "KeyZ" && e.ctrlKey) {
+        goToPrevHistory()
+      }
     }
     const mouseWheelListener = (e: WheelEvent) => {
-      if (!cursorOnBoad) {
+      if (!cursorOnBoad || draggingBoard) {
         return
       }
       const s = Math.sign(e.deltaY)
@@ -404,6 +482,8 @@ export function Board({
       window.removeEventListener("resize", resizeListener)
     }
   }, [nodes, wires, board, cursorOnBoad, svgRootRef.current])
+
+  // Initially set the board size.
   useEffect(() => {
     if (svgRootRef.current) {
       setBoard({
@@ -415,6 +495,12 @@ export function Board({
       })
     }
   }, [svgRootRef.current])
+
+  // Emit change.
+  useEffect(() => {
+    onChange(nodes, wires)
+  }, [nodes, wires])
+
   const onInNodeValueChange = (nodeId: string, index: number, value: InNodeInputValue) => {
     const n = nodes.find(n => n.id === nodeId)
     if (n) {
@@ -488,7 +574,7 @@ export function Board({
             stroke="white"
             strokeWidth={2 / board.zoom}
             strokeLinecap="round"
-            stroke-dasharray={`${4 / board.zoom} ${4 / board.zoom}`}
+            strokeDasharray={`${4 / board.zoom} ${4 / board.zoom}`}
           />
         )}
       </svg>

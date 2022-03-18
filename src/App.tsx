@@ -12,7 +12,6 @@ function onChange(nodes: NodeProps[], wires: WireProps[]) {
     return
   }
   if (prevNodesCount !== nodes.length || prevWireCount !== wires.length) {
-    console.log(nodes, wires)
     prevNodesCount = nodes.length
     prevWireCount = wires.length
     try {
