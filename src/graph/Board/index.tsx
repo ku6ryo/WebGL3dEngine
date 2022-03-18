@@ -7,6 +7,20 @@ import { HistoryManager } from "./HistoryManager";
 import { NodeProps, WireProps } from "./types"
 import shortUUID from "short-uuid";
 
+/**
+ * Generates a unique id for nodes and wires.
+ */
+function generateId() {
+  return shortUUID.generate()
+}
+
+/**
+ * Checks if two rect are overlapping.
+ */
+function hasRectOverlap(r1: Rect, r2: Rect) {
+  return !(r1.x + r1.width < r2.x || r1.x > r2.x + r2.width || r1.y + r1.height < r2.y || r1.y > r2.y + r2.height)
+}
+
 type DraggingNodeStats = {
   startMouseX: number,
   startMouseY: number,
@@ -41,25 +55,13 @@ type DraggingBoardStats = {
 }
 
 type BoardStats = {
+  // The position displayed at the cneter of the board svg.
   centerX: number,
   centerY: number,
-  height: number,
-  width: number,
+  // SVG Element DOM size.
+  domHeight: number,
+  domWidth: number,
   zoom: number,
-}
-
-/**
- * Generates a unique id for nodes and wires.
- */
-function generateId() {
-  return shortUUID.generate()
-}
-
-/**
- * Checks if two rect are overlapping.
- */
-function hasRectOverlap(r1: Rect, r2: Rect) {
-  return !(r1.x + r1.width < r2.x || r1.x > r2.x + r2.width || r1.y + r1.height < r2.y || r1.y > r2.y + r2.height)
 }
 
 export type NodeBlueprint = {
@@ -98,8 +100,8 @@ export function Board({
   const [board, setBoard] = useState<BoardStats>({
     centerX: 0,
     centerY: 0,
-    width: 1000,
-    height: 1000,
+    domWidth: 1000,
+    domHeight: 1000,
     zoom: 1,
   })
   const [cursorOnBoad, setCursorOnBoard] = useState(false)
@@ -262,8 +264,8 @@ export function Board({
     const svgRect = svgRootRef.current.getBoundingClientRect()
     const mouseX = e.clientX - svgRect.x
     const mouseY = e.clientY - svgRect.y
-    const boardX = (mouseX + board.centerX - board.width / 2) / board.zoom
-    const boardY = (mouseY + board.centerY - board.height / 2) / board.zoom
+    const boardX = board.centerX + (mouseX- board.domWidth / 2) / board.zoom
+    const boardY = board.centerY + (mouseY- board.domHeight / 2) / board.zoom
 
     if (drawingWire) {
       setDrawingWire({
@@ -314,8 +316,8 @@ export function Board({
       setWires([...wires])
     }
     if (draggingBoard) {
-      const x = draggingBoard.startCenterX - (mouseX - draggingBoard.startMouseX)
-      const y = draggingBoard.startCenterY - (mouseY - draggingBoard.startMouseY)
+      const x = draggingBoard.startCenterX - (mouseX - draggingBoard.startMouseX) / board.zoom
+      const y = draggingBoard.startCenterY - (mouseY - draggingBoard.startMouseY) / board.zoom
       setBoard({
         ...board,
         centerX: x,
@@ -392,8 +394,8 @@ export function Board({
     // Start drawing selection rect
     if (e.button == 0 && svgRootRef.current) {
       const svgRect = svgRootRef.current.getBoundingClientRect()
-      const x = (e.clientX - svgRect.x + board.centerX - board.width / 2) / board.zoom
-      const y = (e.clientY - svgRect.y + board.centerY - board.height / 2) / board.zoom
+      const x = board.centerX + (e.clientX - svgRect.x - board.domWidth / 2) / board.zoom
+      const y = board.centerY + (e.clientY - svgRect.y - board.domHeight / 2) / board.zoom
       setDrawingRect({
         startX: x,
         startY: y,
@@ -406,20 +408,18 @@ export function Board({
   }
 
   const onNodeResize = (id: string, rect: DOMRect) => {
-    // Wheel button
     if (!svgRootRef.current) {
       return
     }
     const svgRect = svgRootRef.current.getBoundingClientRect()
-    const x = (rect.x - svgRect.x + board.centerX - board.width / 2) / board.zoom
-    const y = (rect.y - svgRect.y + board.centerY - board.height / 2) / board.zoom
+    const x = (rect.x - svgRect.x + board.centerX - board.domWidth / 2) / board.zoom
+    const y = (rect.y - svgRect.y + board.centerY - board.domHeight / 2) / board.zoom
     nodeRects[id] = {
       x,
       y,
       width: rect.width / board.zoom,
       height: rect.height / board.zoom,
     }
-    console.log(nodeRects)
     setNodeRects({ ...nodeRects })
   }
 
@@ -433,8 +433,8 @@ export function Board({
         {
           id: f.id + generateId(),
           typeId: f.id,
-          x: 0,
-          y: 0,
+          x: board.centerX,
+          y: board.centerY,
           color: n.color,
           name: f.name,
           selected: false,
@@ -475,6 +475,31 @@ export function Board({
         goToPrevHistory()
       }
     }
+    window.addEventListener("keydown", keydownListener)
+    return () => {
+      window.removeEventListener("keydown", keydownListener)
+    }
+  }, [nodes, wires, svgRootRef.current])
+
+  // window resize
+  useEffect(() => {
+    const resizeListener = () => {
+      if (svgRootRef.current) {
+        setBoard({
+          ...board,
+          domHeight: svgRootRef.current.clientHeight,
+          domWidth: svgRootRef.current.clientWidth,
+        })
+      }
+    }
+    window.addEventListener("resize", resizeListener)
+    return () => {
+      window.removeEventListener("resize", resizeListener)
+    }
+  }, [board, svgRootRef.current])
+
+  // mouse wheel
+  useEffect(() => {
     const mouseWheelListener = (e: WheelEvent) => {
       if (!cursorOnBoad || draggingBoard) {
         return
@@ -487,24 +512,11 @@ export function Board({
         })
       }
     }
-    const resizeListener = () => {
-      if (svgRootRef.current) {
-        setBoard({
-          ...board,
-          height: svgRootRef.current.clientHeight,
-          width: svgRootRef.current.clientWidth,
-        })
-      }
-    }
-    window.addEventListener("keydown", keydownListener)
     window.addEventListener("wheel", mouseWheelListener)
-    window.addEventListener("resize", resizeListener)
     return () => {
-      window.removeEventListener("keydown", keydownListener)
       window.removeEventListener("wheel", mouseWheelListener)
-      window.removeEventListener("resize", resizeListener)
     }
-  }, [nodes, wires, board, cursorOnBoad, svgRootRef.current])
+  }, [board, cursorOnBoad, draggingBoard])
 
   // Initially set the board size.
   useEffect(() => {
@@ -512,8 +524,8 @@ export function Board({
       setBoard({
         centerX: 0,
         centerY: 0,
-        height: svgRootRef.current.clientHeight,
-        width: svgRootRef.current.clientWidth,
+        domHeight: svgRootRef.current.clientHeight,
+        domWidth: svgRootRef.current.clientWidth,
         zoom: 1
       })
     }
@@ -530,6 +542,11 @@ export function Board({
       n.inNodeInputValues[index] = value
     }
   }
+
+  const viewBox = useMemo(() => {
+    return `${board.centerX - board.domWidth / 2 / board.zoom} ${board.centerY - board.domHeight / 2 / board.zoom} ${board.domWidth / board.zoom} ${board.domHeight / board.zoom}`
+  }, [board])
+
   return (
     <div className={style.frame}>
       <div className={style.nodeSelector}>
@@ -548,7 +565,8 @@ export function Board({
           [style.grabbing]: !!draggingNode
         })}
         ref={svgRootRef}
-        viewBox={`${(board.centerX - board.width / 2) / board.zoom} ${(board.centerY - board.height / 2) / board.zoom} ${board.width / board.zoom} ${board.height / board.zoom}`}
+        viewBox={viewBox}
+        preserveAspectRatio="none"
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseDown={onMouseDown}
@@ -561,6 +579,7 @@ export function Board({
           <stop offset="100%" stopColor="#888"/>
         </linearGradient>
         </defs>
+        <circle cx={board.centerX} cy={board.centerY} r={10 / board.zoom} fill="none" stroke="#ddd" strokeWidth={1} />
         {wires.map(w => (
           <WireLine x1={w.inX} y1={w.inY} x2={w.outX} y2={w.outY}/>
         ))}
