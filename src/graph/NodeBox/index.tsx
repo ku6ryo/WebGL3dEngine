@@ -1,4 +1,4 @@
-import { MouseEventHandler, MouseEvent, useRef, useState, memo, useCallback, ChangeEventHandler, KeyboardEventHandler } from "react"
+import { MouseEventHandler, MouseEvent, useRef, useState, memo, useCallback, ChangeEventHandler, KeyboardEventHandler, useEffect } from "react"
 import style from "./style.module.scss"
 import classnames from "classnames"
 
@@ -32,20 +32,9 @@ export type OutSocket = {
   label: string,
 }
 
-type Props = {
-  id: string,
-  color: NodeColor,
-  name: string,
+export type NodeCorner = {
   x: number,
   y: number,
-  inSockets: InSocket[],
-  outSockets: OutSocket[],
-  inNodeInputSlots: InNodeInputType[],
-  selected: boolean,
-  onSocketMouseUp: (id: string, direction: SocketDirection, i: number, x: number, y: number) => void,
-  onSocketMouseDown: (id: string, direction: SocketDirection, i: number, x: number, y: number) => void,
-  onDragStart: (id: string, x: number, y: number) => void,
-  onInNodeValueChange: (id: string, i: number, value: InNodeInputValue) => void,
 }
 
 function extractInfoFromCircle(e: MouseEvent<HTMLElement>, frame: SVGForeignObjectElement) {
@@ -69,6 +58,23 @@ function extractInfoFromCircle(e: MouseEvent<HTMLElement>, frame: SVGForeignObje
   }
 }
 
+type Props = {
+  id: string,
+  color: NodeColor,
+  name: string,
+  x: number,
+  y: number,
+  inSockets: InSocket[],
+  outSockets: OutSocket[],
+  inNodeInputSlots: InNodeInputType[],
+  selected: boolean,
+  onSocketMouseUp: (id: string, direction: SocketDirection, i: number, x: number, y: number) => void,
+  onSocketMouseDown: (id: string, direction: SocketDirection, i: number, x: number, y: number) => void,
+  onDragStart: (id: string, x: number, y: number) => void,
+  onInNodeValueChange: (id: string, i: number, value: InNodeInputValue) => void,
+  onNodeResize: (id: string, rect: DOMRect) => void,
+}
+
 export const NodeBox = memo(function NodeBox({
   id,
   name,
@@ -83,10 +89,12 @@ export const NodeBox = memo(function NodeBox({
   selected,
   onDragStart,
   onInNodeValueChange,
+  onNodeResize,
 }: Props) {
   const imageInputRef = useRef<HTMLInputElement | null>(null)
   const [imageValue, setImageValue] = useState<HTMLImageElement | null>(null)
   const frameRef = useRef<SVGForeignObjectElement | null>(null)
+  const boxRef = useRef<HTMLDivElement | null>(null)
 
   const onSocketMouseUpInternal: MouseEventHandler<HTMLDivElement> = useCallback((e) => {
     if (!frameRef.current) {
@@ -121,6 +129,12 @@ export const NodeBox = memo(function NodeBox({
   const onKeyDownInFloatValueInput: KeyboardEventHandler<HTMLInputElement> = useCallback((e) => {
     e.stopPropagation()
   }, [])
+
+  useEffect(() => {
+    if (boxRef.current) {
+      onNodeResize(id, boxRef.current.getBoundingClientRect())
+    }
+  }, [boxRef.current])
 
   const onImageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const index = Number(e.currentTarget.dataset.index)
@@ -161,8 +175,10 @@ export const NodeBox = memo(function NodeBox({
           [style.selected]: selected,
         })}
       >
-        <div className={style.box}
+        <div
+          className={style.box}
           onMouseDown={onBoxMouseDown}
+          ref={boxRef}
         >
           <div className={
             classnames({

@@ -4,20 +4,8 @@ import { WireLine } from "../WireLine";
 import style from "./style.module.scss"
 import classnames from "classnames"
 import { HistoryManager } from "./HistoryManager";
-
-export type NodeProps = {
-  id: string,
-  typeId: string,
-  x: number,
-  y: number,
-  name: string,
-  color: NodeColor,
-  inSockets: InSocket[],
-  outSockets: OutSocket[]
-  inNodeInputSlots: InNodeInputType[],
-  inNodeInputValues: InNodeInputValue[],
-  selected: boolean,
-}
+import { NodeProps, WireProps } from "./types"
+import shortUUID from "short-uuid";
 
 type DraggingNodeStats = {
   startMouseX: number,
@@ -33,18 +21,6 @@ type DrawingRectStats = {
   y: number
   width: number
   height: number
-}
-
-export type WireProps = {
-  id: string,
-  inNodeId: string,
-  outNodeId: string,
-  inSocketIndex: number,
-  outSocketIndex: number,
-  inX: number,
-  inY: number,
-  outX: number,
-  outY: number,
 }
 
 type DrawingWireStats = {
@@ -72,9 +48,18 @@ type BoardStats = {
   zoom: number,
 }
 
-let nextId = 0
-function generateNodeId() {
-  return nextId++
+/**
+ * Generates a unique id for nodes and wires.
+ */
+function generateId() {
+  return shortUUID.generate()
+}
+
+/**
+ * Checks if two rect are overlapping.
+ */
+function hasRectOverlap(r1: Rect, r2: Rect) {
+  return !(r1.x + r1.width < r2.x || r1.x > r2.x + r2.width || r1.y + r1.height < r2.y || r1.y > r2.y + r2.height)
 }
 
 export type NodeBlueprint = {
@@ -88,6 +73,13 @@ export type NodeFactory = {
   id: string,
   name: string
   factory: () => NodeBlueprint
+}
+
+type Rect = {
+  x: number,
+  y: number,
+  width: number,
+  height: number,
 }
 
 type Props = {
@@ -117,6 +109,7 @@ export function Board({
   const [drawingRect, setDrawingRect] = useState<DrawingRectStats | null>(null)
   const [wires, setWires] = useState<WireProps[]>([])
   const [nodes, setNodes] = useState<NodeProps[]>([])
+  const [nodeRects, setNodeRects] = useState<{ [id: string]: Rect }>({})
 
   const historyManager = useMemo(() => new HistoryManager(), [])
 
@@ -190,7 +183,7 @@ export function Board({
       newWires = [
         ...wires,
         {
-          id: "w" + generateNodeId(),
+          id: "w" + generateId(),
           inNodeId: id,
           inSocketIndex: i,
           outNodeId: drawingWire.startNodeId,
@@ -203,7 +196,7 @@ export function Board({
       ]
     } else {
       const newWire = {
-        id: "w" + generateNodeId(),
+        id: "w" + generateId(),
         inNodeId: drawingWire.startNodeId,
         inSocketIndex: drawingWire.startSocketIndex,
         outNodeId: id,
@@ -293,8 +286,13 @@ export function Board({
         if (!lastNode) {
           throw new Error("no last node ... might be a bug")
         }
-        n.x = lastNode.x + dMouseX / board.zoom
-        n.y = lastNode.y + dMouseY / board.zoom
+        const nx = lastNode.x + dMouseX / board.zoom
+        const ny = lastNode.y + dMouseY / board.zoom
+        n.x = nx
+        n.y = ny
+        const nr = nodeRects[n.id]
+        nr.x = nx
+        nr.y = ny
         wires.forEach(w => {
           const lastWire = savedWires[w.id]
           if (!lastWire) {
@@ -311,6 +309,7 @@ export function Board({
         })
         return n
       })
+      setNodeRects({...nodeRects})
       setNodes(updatedNodes)
       setWires([...wires])
     }
@@ -343,10 +342,11 @@ export function Board({
     setDraggingBoard(null)
     if (drawingRect) {
       const newNodes = nodes.map(n => {
-        if (
-          drawingRect.x < n.x && n.x < drawingRect.x + drawingRect.width &&
-          drawingRect.y < n.y && n.y < drawingRect.y + drawingRect.height
-        ) {
+        const rect = nodeRects[n.id]
+        if (!rect) {
+          throw new Error("no rect found for the node. ID: " + n.id)
+        }
+        if (hasRectOverlap(drawingRect, rect)) {
           n.selected = true
         } else {
           n.selected = false
@@ -405,6 +405,24 @@ export function Board({
     }
   }
 
+  const onNodeResize = (id: string, rect: DOMRect) => {
+    // Wheel button
+    if (!svgRootRef.current) {
+      return
+    }
+    const svgRect = svgRootRef.current.getBoundingClientRect()
+    const x = (rect.x - svgRect.x + board.centerX - board.width / 2) / board.zoom
+    const y = (rect.y - svgRect.y + board.centerY - board.height / 2) / board.zoom
+    nodeRects[id] = {
+      x,
+      y,
+      width: rect.width / board.zoom,
+      height: rect.height / board.zoom,
+    }
+    console.log(nodeRects)
+    setNodeRects({ ...nodeRects })
+  }
+
   const onNodeAdd: MouseEventHandler<HTMLDivElement> = (e) => {
     const typeId = e.currentTarget.dataset.nodeTypeId
     const f = factories.find(f => f.id === typeId)
@@ -413,7 +431,7 @@ export function Board({
       const newNodes = [
         ...nodes,
         {
-          id: f.id + generateNodeId(),
+          id: f.id + generateId(),
           typeId: f.id,
           x: 0,
           y: 0,
@@ -437,13 +455,18 @@ export function Board({
     const keydownListener = (e: KeyboardEvent) => {
       if (e.code === "Delete" || e.code === "Backspace") {
         const nodesToKeep = nodes.filter(n => !n.selected)
-        const nodesToRemove = nodes.filter(n => n.selected)
+        const nodesToRemove = nodes.map(n => {
+          return n
+        }).filter(n => n.selected)
         setNodes(nodesToKeep)
-        setWires(wires.filter(w => {
+        const wiresToKeep = wires.filter(w => {
           return !nodesToRemove.find(n => {
             return w.inNodeId === n.id || w.outNodeId === n.id
           })
-        }))
+        })
+        setWires(wiresToKeep)
+        setNodeRects({ ...nodeRects })
+        historyManager.save(nodesToKeep, wiresToKeep)
       }
       if (e.code === "Escape") {
         setNodes(nodes.map(n => { n.selected = false; return n }))
@@ -557,6 +580,7 @@ export function Board({
             onSocketMouseUp={onSocketMouseUp}
             onDragStart={onNodeDragStart}
             onInNodeValueChange={onInNodeValueChange}
+            onNodeResize={onNodeResize}
           />
         ))}
         {drawingWire && (drawingWire.startDirection == "in" ? (
