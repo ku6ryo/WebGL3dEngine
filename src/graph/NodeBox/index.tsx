@@ -26,16 +26,13 @@ export type InNodeInputValue = {
 
 export type InSocket = {
   label: string,
+  dataTypes: number[]
   alternativeValueInputType?: InNodeInputType,
+  alternativeValue?: InNodeInputValue,
 }
 
 export type OutSocket = {
   label: string,
-}
-
-export type NodeCorner = {
-  x: number,
-  y: number,
 }
 
 function extractInfoFromCircle(e: MouseEvent<HTMLElement>, frame: SVGForeignObjectElement) {
@@ -67,12 +64,11 @@ type Props = {
   y: number,
   inSockets: InSocket[],
   outSockets: OutSocket[],
-  inNodeInputSlots: InNodeInputType[],
   selected: boolean,
   onSocketMouseUp: (id: string, direction: SocketDirection, i: number, x: number, y: number) => void,
   onSocketMouseDown: (id: string, direction: SocketDirection, i: number, x: number, y: number) => void,
   onDragStart: (id: string, x: number, y: number) => void,
-  onInNodeValueChange: (id: string, i: number, value: InNodeInputValue) => void,
+  onInSocketValueChange: (id: string, i: number, value: InNodeInputValue) => void,
   onNodeResize: (id: string, rect: DOMRect) => void,
 }
 
@@ -84,12 +80,11 @@ export const NodeBox = memo(function NodeBox({
   y,
   inSockets,
   outSockets,
-  inNodeInputSlots,
   onSocketMouseUp,
   onSocketMouseDown,
   selected,
   onDragStart,
-  onInNodeValueChange,
+  onInSocketValueChange,
   onNodeResize,
 }: Props) {
   const imageInputRef = useRef<HTMLInputElement | null>(null)
@@ -122,47 +117,15 @@ export const NodeBox = memo(function NodeBox({
     }
   }, [id, onDragStart])
 
-  const onFloatValueChange: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
-    const index = Number(e.currentTarget.dataset.index)
-    onInNodeValueChange(id, index, { float: Number(e.currentTarget.value) })
-  }, [id, onInNodeValueChange])
-
-  const onKeyDownInFloatValueInput: KeyboardEventHandler<HTMLInputElement> = useCallback((e) => {
-    e.stopPropagation()
-  }, [])
+  const onSocketValueChange = useCallback((index: number, value: InNodeInputValue) => {
+    onInSocketValueChange(id, index, value)
+  }, [id, onInSocketValueChange])
 
   useEffect(() => {
     if (boxRef.current) {
       onNodeResize(id, boxRef.current.getBoundingClientRect())
     }
   }, [boxRef.current])
-
-  const onImageInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const index = Number(e.currentTarget.dataset.index)
-    ;(async () => {
-      const files = e.target.files
-      if (files) {
-        const file = files.item(0)
-        if (file) {
-          var arrayBufferView = new Uint8Array(await file.arrayBuffer())
-          var blob = new Blob( [ arrayBufferView ], { type: "image/jpeg" } );
-          var urlCreator = window.URL || window.webkitURL;
-          var imageUrl = urlCreator.createObjectURL( blob );
-          var img = new Image()
-          img.src = imageUrl;
-          img.onload = () => {
-            onInNodeValueChange(id, index, { image: img })
-            setImageValue(img)
-          }
-        }
-      }
-    })()
-  }
-  const onImageInputRectClick = () => {
-    if (imageInputRef.current) {
-      imageInputRef.current.click()
-    }
-  }
   return (
     <g
       transform={`translate(${x}, ${y})`}
@@ -204,41 +167,6 @@ export const NodeBox = memo(function NodeBox({
               </div>
             ))}
           </div>
-          <div className={style.floatInput}>
-            <FloatInput />
-          </div>
-          {inNodeInputSlots.length > 0 && (
-            <div className={style.inValueSlots}>
-              {inNodeInputSlots.map((t, i) => {
-                if (t === InNodeInputType.Float) {
-                  return (
-                    <div className={style.slot}>
-                      <input data-index={i} onChange={onFloatValueChange} type="number" onKeyDown={onKeyDownInFloatValueInput}/>
-                    </div>
-                  )
-                }
-                if (t === InNodeInputType.Image) {
-                  return (
-                    <div className={style.slot}>
-                      <div className={style.imageInputRect} onClick={onImageInputRectClick}>
-                        {imageValue && (
-                          <img src={imageValue.src}/>
-                        )}
-                      </div>
-                      <input
-                        data-index={i}
-                        type="file"
-                        accept="image/jpeg,image/png"
-                        onChange={onImageInputChange}
-                        ref={imageInputRef}
-                        className={style.imageInput}
-                      />
-                    </div>
-                  )
-                }
-              }).filter(elem => !!elem)}
-            </div>
-          )}
           <div className={style.inputs}>
             {inSockets.map((socket, i) => (
               <div
@@ -253,6 +181,13 @@ export const NodeBox = memo(function NodeBox({
                   onMouseUp={onSocketMouseUpInternal}
                 />
                 <div>{socket.label}</div>
+                {socket.alternativeValue && socket.alternativeValueInputType && (
+                  <div className={style.inputContainer}>
+                    {socket.alternativeValueInputType === InNodeInputType.Float && (
+                      <FloatInput index={i} onChange={onSocketValueChange} value={socket.alternativeValue} />
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>

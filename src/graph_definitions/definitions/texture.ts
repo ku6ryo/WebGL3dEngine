@@ -1,6 +1,7 @@
 import { NodeTypeId } from "./NodeTypeId"
 import { NodeColor } from "../../graph/NodeBox"
-import { NodeBlueprint } from "../../graph/Board.tsx"
+import { NodeBlueprint } from "../../graph/Board"
+import { mathTypes } from "./data_types"
 
 export const textureFactories = [{
   id: NodeTypeId.TextureSample,
@@ -13,6 +14,7 @@ export const textureFactories = [{
         label: "Texture",
       }, {
         label: "UV",
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "Color",
@@ -28,6 +30,7 @@ export const textureFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "UV",
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "Color",

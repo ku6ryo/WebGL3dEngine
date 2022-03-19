@@ -1,6 +1,7 @@
 import { NodeTypeId } from "./NodeTypeId"
-import { NodeColor } from "../../graph/NodeBox"
+import { InNodeInputType, NodeColor } from "../../graph/NodeBox"
 import { NodeBlueprint } from "../../graph/Board"
+import { mathTypes } from "./data_types"
 
 export const mathFactories = [{
   id: NodeTypeId.MathAdd,
@@ -11,8 +12,18 @@ export const mathFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "Value 1",
+        alternativeValueInputType: InNodeInputType.Float,
+        alternativeValue: {
+          float: 1
+        },
+        dataTypes: mathTypes,
       }, {
         label: "Value 2",
+        alternativeValueInputType: InNodeInputType.Float,
+        alternativeValue: {
+          float: 1
+        },
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "Result",
@@ -28,6 +39,7 @@ export const mathFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "Value",
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "Result",
@@ -43,6 +55,7 @@ export const mathFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "Value",
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "Result",
@@ -58,6 +71,7 @@ export const mathFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "Value",
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "Result",
@@ -73,6 +87,7 @@ export const mathFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "Value 1",
+        dataTypes: mathTypes,
       }, {
         label: "Value 2",
       }],
@@ -90,6 +105,7 @@ export const mathFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "Value",
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "Result",
@@ -105,8 +121,10 @@ export const mathFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "Value 1",
+        dataTypes: mathTypes,
       }, {
         label: "Value 2",
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "Result",
@@ -122,8 +140,10 @@ export const mathFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "Value 1",
+        dataTypes: mathTypes,
       }, {
         label: "Value 2",
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "Result",
@@ -139,12 +159,16 @@ export const mathFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "R",
+        dataTypes: mathTypes,
       }, {
         label: "G",
+        dataTypes: mathTypes,
       }, {
         label: "B",
+        dataTypes: mathTypes,
       }, {
         label: "A",
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "Vec",
@@ -160,6 +184,7 @@ export const mathFactories = [{
       inNodeInputSlots: [],
       inSockets: [{
         label: "Vec",
+        dataTypes: mathTypes,
       }],
       outSockets: [{
         label: "R",

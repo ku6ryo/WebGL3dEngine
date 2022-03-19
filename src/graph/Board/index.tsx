@@ -68,7 +68,6 @@ export type NodeBlueprint = {
   color: NodeColor,
   inSockets: InSocket[],
   outSockets: OutSocket[],
-  inNodeInputSlots: InNodeInputType[],
 }
 
 export type NodeFactory = {
@@ -111,6 +110,8 @@ export function Board({
   const [drawingRect, setDrawingRect] = useState<DrawingRectStats | null>(null)
   const [wires, setWires] = useState<WireProps[]>([])
   const [nodes, setNodes] = useState<NodeProps[]>([])
+  const [nodeDict, setNodeDict] = useState<{ [id: string]: NodeProps }>({})
+  const [wireDict, setWireDict] = useState<{ [key: string]: WireProps }>({})
   const [nodeRects, setNodeRects] = useState<{ [id: string]: Rect }>({})
 
   const historyManager = useMemo(() => new HistoryManager(), [])
@@ -438,8 +439,6 @@ export function Board({
           color: n.color,
           name: f.name,
           selected: false,
-          inNodeInputSlots: n.inNodeInputSlots,
-          inNodeInputValues: Array(n.inNodeInputSlots.length).fill({}),
           inSockets: n.inSockets,
           outSockets: n.outSockets,
         }
@@ -536,10 +535,11 @@ export function Board({
     onChange(nodes, wires)
   }, [nodes, wires])
 
-  const onInNodeValueChange = (nodeId: string, index: number, value: InNodeInputValue) => {
+  const onInSocketValueChange = (nodeId: string, index: number, value: InNodeInputValue) => {
     const n = nodes.find(n => n.id === nodeId)
     if (n) {
-      n.inNodeInputValues[index] = value
+      n.inSockets[index].alternativeValue = value
+      setNodes([...nodes])
     }
   }
 
@@ -574,12 +574,20 @@ export function Board({
         onMouseLeave={onMouseLeave}
       >
        <defs>
-        <linearGradient id="wire-linear" x1="20%" y1="0%" x2="80%" y2="0%" spreadMethod="pad">
-          <stop offset="0%"   stopColor="#ddd"/>
-          <stop offset="100%" stopColor="#888"/>
-        </linearGradient>
+          <linearGradient id="wire-linear" x1="20%" y1="0%" x2="80%" y2="0%" spreadMethod="pad">
+            <stop offset="0%"   stopColor="#ddd"/>
+            <stop offset="100%" stopColor="#888"/>
+          </linearGradient>
+          <pattern id="board-background-pattern" viewBox="0 0 24 24" width={"0.02%"} height="0.02%">
+            <g className={style.boardPattern} fill="#000000">
+              <polygon id="Rectangle-20" points="1.99840144e-15 18 6 18 12 12 12 18 18 18 12 24 3.99680289e-15 24"></polygon>
+              <polygon id="Rectangle-20-Copy" points="24 18 24 24 18 24"></polygon>
+              <polygon id="Rectangle-20-Copy-2" points="24 1.77635684e-15 18 6 12 6 18 1.77635684e-15"></polygon>
+              <polygon id="Rectangle-20-Copy-3" points="12 -4.08562073e-14 12 6 0 18 1.99840144e-15 12 6 6 1.99840144e-15 6 1.99840144e-15 1.11022302e-15"></polygon>
+            </g>
+          </pattern>
         </defs>
-        <circle cx={board.centerX} cy={board.centerY} r={10 / board.zoom} fill="none" stroke="#ddd" strokeWidth={1} />
+        <circle cx={0} cy={0} r={100000} fill="url(#board-background-pattern)" />
         {wires.map(w => (
           <WireLine x1={w.inX} y1={w.inY} x2={w.outX} y2={w.outY}/>
         ))}
@@ -594,11 +602,10 @@ export function Board({
             selected={n.selected}
             inSockets={n.inSockets}
             outSockets={n.outSockets}
-            inNodeInputSlots={n.inNodeInputSlots}
             onSocketMouseDown={onSocketMouseDown}
             onSocketMouseUp={onSocketMouseUp}
             onDragStart={onNodeDragStart}
-            onInNodeValueChange={onInNodeValueChange}
+            onInSocketValueChange={onInSocketValueChange}
             onNodeResize={onNodeResize}
           />
         ))}

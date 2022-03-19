@@ -11,8 +11,6 @@ export type NodeProps = {
   color: NodeColor,
   inSockets: InSocket[],
   outSockets: OutSocket[]
-  inNodeInputSlots: InNodeInputType[],
-  inNodeInputValues: InNodeInputValue[],
   selected: boolean,
 }
 

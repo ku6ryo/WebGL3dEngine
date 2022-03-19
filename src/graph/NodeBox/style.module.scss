@@ -5,13 +5,13 @@
 
 .frame.selected {
   .box {
-    border-color: #fafafa;
+    border-color: #ff9f0f;
   }
 }
 
 .box {
   background-color: #3f3f3f;
-  border: 2px solid #6a6a6a;
+  border: 1px solid #6a6a6a;
   border-radius: 4px;
   box-sizing: border-box;
   box-shadow: 0 1px 3px 0px rgba(0, 0, 0, 0.8);
@@ -21,11 +21,11 @@
 
 .name {
   background-color: #ccc;
-  box-shadow: 0 0 2px 0 rgba(0, 0, 0, .8);
+  border-radius: 2px 2px 0 0;
   font-size: 12px;
   font-weight: bold;
   line-height: 1;
-  padding: 6px 8px 4px;
+  padding: 6px 8px 5px;
 
   &.orange {
     background-color: rgb(255, 175, 71);
@@ -50,7 +50,7 @@
 .outputs {
   color: white;
   font-size: 12px;
-  padding: 8px;
+  padding: 8px 4px 0;
 
   .row {
     line-height: 1;
@@ -59,7 +59,7 @@
     text-align: right;
 
     .socket {
-      right: -14px;
+      right: -10px;
       top: 5px;
     }
   }
@@ -68,7 +68,7 @@
 .inputs {
   color: white;
   font-size: 12px;
-  padding: 8px;
+  padding: 4px;
 
   .row {
     line-height: 1;
@@ -76,23 +76,27 @@
     position: relative;
 
     .socket {
-      left: -14px;
+      left: -10px;
       top: 5px;
+    }
+
+    .inputContainer {
+      margin-top: 4px;
     }
   }
 }
 
 .socket {
   background-color: rgb(182, 182, 182);
-  filter: drop-shadow(2px 2px 1px rgba(0, 0, 0, .4));
   border: 1px solid #444;
-  position: absolute;
   border-radius: 10px;
   height: 8px;
+  position: absolute;
+  transition: .3s;
   width: 8px;
 
   &:hover {
-    background-color: yellow;
+    background-color: #f2f2f2;
   }
 }
 

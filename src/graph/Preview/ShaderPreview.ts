@@ -1,37 +1,27 @@
-import Stats from "stats.js"
-import { TorusGeometry } from "./renderer/geometries/TorusGeometry"
-import { Vector3 } from "./renderer/math/Vector3";
-import { Camera } from "./renderer/Camera";
-import { Renderer } from "./renderer/Renderer";
-import { Thing } from "./renderer/Thing";
-import { StandardMaterial } from "./renderer/materials/StandardMaterial/StandardMaterial";
-import { DirectionalLight } from "./renderer/lights/DirectionalLight";
-import { Graph } from "./renderer/materials/ShaderGraphMaterial/graph/Graph";
-import { ShaderGraphMaterial } from "./renderer/materials/ShaderGraphMaterial/ShaderGraphMaterial";
-
-const stats = new Stats()
-document.body.appendChild(stats.dom)
+import { TorusGeometry } from "../../renderer/geometries/TorusGeometry"
+import { Vector3 } from "../../renderer/math/Vector3";
+import { Camera } from "../../renderer/Camera";
+import { Renderer } from "../../renderer/Renderer";
+import { Thing } from "../../renderer/Thing";
+import { StandardMaterial } from "../../renderer/materials/StandardMaterial/StandardMaterial";
+import { DirectionalLight } from "../../renderer/lights/DirectionalLight";
+import { Graph } from "../../renderer/materials/ShaderGraphMaterial/graph/Graph";
+import { ShaderGraphMaterial } from "../../renderer/materials/ShaderGraphMaterial/ShaderGraphMaterial";
 
 export class ShaderPreview {
 
   #targetThing: Thing
   #renderer: Renderer
   #camera: Camera
+  #canvas: HTMLCanvasElement
 
   constructor() {
-    const w = 960
-    const h = 540
     const renderer = new Renderer()
     const glCanvas = renderer.getCanvas()
-    glCanvas.width = w
-    glCanvas.height = h
-    glCanvas.style.height = "100vh"
-    glCanvas.style.width = "100vw"
-    glCanvas.style.maxHeight = `calc(100vw * ${h / w})`
-    glCanvas.style.maxWidth = `calc(100vh * ${w / h})`
-    glCanvas.width = w
-    glCanvas.height = h
-    document.querySelector(".container")!.appendChild(glCanvas)
+
+    this.#canvas = glCanvas
+    this.#canvas.width = 600
+    this.#canvas.height = 600
 
     const camera = new Camera()
     camera.setPosition(new Vector3(0, 0, -5))
@@ -53,6 +43,10 @@ export class ShaderPreview {
     this.#camera = camera
   }
 
+  getCanvas() {
+    return this.#canvas
+  }
+
   update(graph: Graph) {
     console.log(graph.generateVertCode())
     console.log(graph.generateFragCode())
@@ -65,10 +59,8 @@ export class ShaderPreview {
   }
 
   render() {
-    stats.begin()
     this.#targetThing.setRotation(new Vector3(0, Math.PI * performance.now() / 1000, 0))
     this.#renderer.render(this.#camera)
-    stats.end()
   }
 
   start() {

@@ -1,13 +1,12 @@
 import style from "./App.module.scss";
-import { Board, NodeProps, WireProps } from "./graph/Board";
-import { ShaderPreview } from "./ShaderPreview";
+import { Board } from "./graph/Board";
+import { NodeProps, WireProps } from "./graph/Board/types";
 import { factories } from "./graph_definitions/definitions/factories";
 import { createGraphFromInputs } from "./graph_definitions/createGraphFromInputs";
+import { Preview } from "./graph/Preview";
 
-let preview = new ShaderPreview()
-let prevNodesCount = -1
-let prevWireCount = -1
 function onChange(nodes: NodeProps[], wires: WireProps[]) {
+  /*
   if (nodes.length === 0) {
     return
   }
@@ -21,14 +20,18 @@ function onChange(nodes: NodeProps[], wires: WireProps[]) {
       console.error(e)
     }
   }
+  */
 }
-
-preview.start()
 
 export const App = () => {
   return (
-    <div className={style.container}>
-      <Board factories={factories} onChange={onChange}/>
-    </div>
+    <>
+      <div className={style.board}>
+        <Board factories={factories} onChange={onChange}/>
+      </div>
+      <div className={style.preview}>
+        <Preview />
+      </div>
+    </>
   )
 }

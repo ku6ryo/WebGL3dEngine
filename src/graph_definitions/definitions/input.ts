@@ -1,6 +1,6 @@
 import { NodeTypeId } from "./NodeTypeId"
 import { NodeColor, InNodeInputType } from "../../graph/NodeBox"
-import { NodeBlueprint } from "../../graph/Board.tsx"
+import { NodeBlueprint } from "../../graph/Board"
 
 export const inputFactories = [{
   id: NodeTypeId.InputUv,
@@ -8,7 +8,6 @@ export const inputFactories = [{
   factory: () => {
     return {
       color: NodeColor.Red,
-      inNodeInputSlots: [],
       inSockets: [],
       outSockets: [{
         label: "UV",
@@ -21,7 +20,6 @@ export const inputFactories = [{
   factory: () => {
     return {
       color: NodeColor.Red,
-      inNodeInputSlots: [],
       inSockets: [],
       outSockets: [{
         label: "Seconds",
@@ -34,7 +32,6 @@ export const inputFactories = [{
   factory: () => {
     return {
       color: NodeColor.Red,
-      inNodeInputSlots: [InNodeInputType.Image],
       inSockets: [],
       outSockets: [{
         label: "Texture",
@@ -47,7 +44,6 @@ export const inputFactories = [{
   factory: () => {
     return {
       color: NodeColor.Red,
-      inNodeInputSlots: [InNodeInputType.Float],
       inSockets: [],
       outSockets: [{
         label: "value",
