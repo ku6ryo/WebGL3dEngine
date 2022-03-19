@@ -1,9 +1,9 @@
 import { createValidNumberLiteral } from "../../utils";
-import { Node } from "../../Node";
+import { ShaderNode } from "../../ShaderNode";
 import { ShaderDataType } from "../../data_types";
 
 
-export class FloatInputNode extends Node {
+export class FloatInputNode extends ShaderNode {
 
   #value: number = 0
 

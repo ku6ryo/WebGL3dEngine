@@ -1,8 +1,8 @@
-import { Node } from "../../Node";
+import { ShaderNode } from "../../ShaderNode";
 import { ShaderDataType } from "../../data_types";
 
 
-export class SampleTextureNode extends Node {
+export class SampleTextureNode extends ShaderNode {
 
   constructor(id: string) {
     super(id, "Texture_Sample")

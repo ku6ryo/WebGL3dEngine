@@ -1,14 +1,14 @@
 import { Material } from "../Material";
-import { Graph } from "./graph/Graph";
+import { ShaderGraph } from "./graph/ShaderGraph";
 import { ShaderGraphProgram } from "./ShaderGaraphProgram";
 
 export class ShaderGraphMaterial extends Material {
   #program: ShaderGraphProgram | null = null;
-  #graph: Graph;
+  #graph: ShaderGraph;
 
   #error = false
 
-  constructor(graph: Graph) {
+  constructor(graph: ShaderGraph) {
     super()
     this.#graph = graph
   }

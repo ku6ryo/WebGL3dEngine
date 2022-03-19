@@ -5,16 +5,8 @@ import { validVariableName } from "./utils";
 import { Socket } from "./Socket";
 import { ShaderDataType } from "./data_types";
 
-export enum UniformType {
-  Float = "float",
-  Vector2 = "vec2",
-  Vector3 = "vec3",
-  Vector4 = "vec4",
-  Sampler2D = "sampler2D",
-}
-
 export type Uniform = {
-  type: UniformType;
+  type: ShaderDataType;
   name?: string;
   valueSampler2D?: HTMLImageElement;
   valueFloat?: number;
@@ -27,7 +19,7 @@ export enum AttributeType {
   UV = "uv",
 }
 
-export abstract class Node {
+export abstract class ShaderNode {
   // Unique id for this node
   #id: string;
   // ID to distinguish node types.
@@ -52,7 +44,6 @@ export abstract class Node {
   constructor(
     id: string,
     typeId: string,
-    uniforms: UniformType[] = [],
     attributes: AttributeType[] = [],
     isOutputNode: boolean = false,
     needsUniformUpdatesOnDraw: boolean = false
@@ -65,12 +56,6 @@ export abstract class Node {
     }
     this.#id = id;
     this.#typeId = typeId;
-
-    this.#uniforms = uniforms.map(t => {
-      return {
-        type: t,
-      }
-    })
     this.#attributes = attributes
     this.#isOutputNode = isOutputNode
     this.#needsUniformUpdateOnDraw = needsUniformUpdatesOnDraw
@@ -103,6 +88,10 @@ export abstract class Node {
 
   protected addInSocket(name: string, type: ShaderDataType) {
     this.#inSockets.push(this.createSocket(name, type))
+    this.#uniforms.push({
+      type,
+      name: `u_${this.#id}_${this.#inSockets.length - 1}_${type}`,
+    })
   }
 
   getInSockets(): Socket[] {
@@ -115,14 +104,6 @@ export abstract class Node {
 
   getOutSockets(): Socket[] {
     return [...this.#outSockets]
-  }
-
-  setUnifromName(index: number, name: string) {
-    const u = this.#uniforms[index]
-    if (!u) {
-      throw new Error(`Uniform index ${index} does not exist`)
-    }
-    u.name = name
   }
 
   getUniforms(): Uniform[] {

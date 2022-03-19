@@ -1,7 +1,7 @@
-import { Node } from "../../Node";
+import { ShaderNode } from "../../ShaderNode";
 import { ShaderDataType } from "../../data_types";
 
-export class CombineNode extends Node {
+export class CombineNode extends ShaderNode {
 
   constructor(id: string) {
     super(id, "Math_Combine")

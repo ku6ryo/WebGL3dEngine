@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useRef } from "react"
+import { ShaderGraph } from "../../renderer/materials/ShaderGraphMaterial/graph/ShaderGraph";
 import { ShaderPreview } from "./ShaderPreview";
 import style from "./style.module.scss"
 
+type Props = {
+  graph: ShaderGraph | null
+}
 
-export function Preview() {
+export function Preview({
+  graph,
+}: Props) {
   const frameRef = useRef<HTMLDivElement>(null)
   const preview = useMemo(() => {
     return new ShaderPreview()
@@ -14,6 +20,11 @@ export function Preview() {
       frameRef.current.appendChild(preview.getCanvas())
     }
   }, [frameRef.current])
+  useEffect(() => {
+    if (graph) {
+      preview.update(graph)
+    }
+  }, [graph])
   return (
     <div
       ref={frameRef}

@@ -1,9 +1,9 @@
-import { Node } from "../../Node";
+import { ShaderNode } from "../../ShaderNode";
 import { ShaderDataType, ShaderVectorTypes } from "../../data_types";
 
 const SupportedTypes = ShaderVectorTypes.concat([ShaderDataType.Float]);
 
-export class SineNode extends Node {
+export class SineNode extends ShaderNode {
 
   #type: ShaderDataType
 

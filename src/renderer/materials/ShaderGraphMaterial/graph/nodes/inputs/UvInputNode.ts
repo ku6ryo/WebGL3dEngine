@@ -1,10 +1,10 @@
-import { AttributeType, Node } from "../../Node";
+import { AttributeType, ShaderNode } from "../../ShaderNode";
 import { ShaderDataType } from "../../data_types";
 
-export class UvInputNode extends Node {
+export class UvInputNode extends ShaderNode {
 
   constructor(id: string) {
-    super(id, "UvInput", [], [AttributeType.UV])
+    super(id, "UvInput", [AttributeType.UV])
     this.addOutSocket("TextureInputNodeOut", ShaderDataType.Vector2)
   }
 

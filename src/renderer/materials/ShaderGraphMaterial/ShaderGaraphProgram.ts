@@ -1,13 +1,14 @@
 import { Camera } from "../../Camera";
 import { Thing } from "../../Thing";
 import { BasicProgram } from "../BasicProgram"
-import { Graph } from "./graph/Graph"
-import { AttributeType, UniformType } from "./graph/Node";
+import { ShaderGraph } from "./graph/ShaderGraph"
+import { AttributeType } from "./graph/ShaderNode";
+import { ShaderDataType } from "./graph/data_types";
 
 export class ShaderGraphProgram extends BasicProgram {
-  #graph: Graph;
+  #graph: ShaderGraph;
 
-  constructor(gl: WebGLRenderingContext, graph: Graph) {
+  constructor(gl: WebGLRenderingContext, graph: ShaderGraph) {
     super(
       gl,
       graph.generateVertCode(),
@@ -29,7 +30,7 @@ export class ShaderGraphProgram extends BasicProgram {
           if (!name) {
             throw new Error("Uniform name is not set")
           }
-          if (u.type === UniformType.Sampler2D) {
+          if (u.type === ShaderDataType.Sampler2D) {
             this.createTextureLocation(name, 0)
           } else {
             this.createUniformLocation(name)
@@ -47,12 +48,12 @@ export class ShaderGraphProgram extends BasicProgram {
         if (!u.name) {
           throw new Error("Uniform name is not set")
         }
-        if (u.type === UniformType.Sampler2D) {
+        if (u.type === ShaderDataType.Sampler2D) {
           if (!u.valueSampler2D) {
             throw new Error("texture is not set")
           }
           this.setTextureValue(u.name, u.valueSampler2D)
-        } else if (u.type === UniformType.Float) {
+        } else if (u.type === ShaderDataType.Float) {
           this.setFloatUniformValue(u.name, u.valueFloat || 0)
           // TODO implement other uniforms
         }

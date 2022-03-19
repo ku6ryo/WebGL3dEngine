@@ -120,6 +120,10 @@ export function Board({
     })
     return m
   }, [])
+  const saveHistory = useCallback((nodes: NodeProps[], wires: WireProps[]) => {
+    historyManager.save(nodes, wires)
+    onChange(nodes, wires)
+  }, [])
 
   const goToPrevHistory = () => {
     const history = historyManager.goBack()
@@ -219,7 +223,7 @@ export function Board({
       }
     }
     nwManager.updateWires(newWires)
-    historyManager.save(nwManager.getNodes(), newWires)
+    saveHistory(nwManager.getNodes(), newWires)
     setDrawingWire(null)
   }, [board.zoom, drawingWire])
 
@@ -348,7 +352,7 @@ export function Board({
     const wires = nwManager.getWires()
     setDrawingWire(null)
     if (draggingNode) {
-      historyManager.save(nodes, wires)
+      saveHistory(nodes, wires)
       setDraggingNode(null)
     }
     setDraggingBoard(null)
@@ -455,7 +459,7 @@ export function Board({
           outSockets: n.outSockets,
         }
       ]
-      historyManager.save(newNodes, wires)
+      saveHistory(newNodes, wires)
       nwManager.updateNodes(newNodes)
     } else {
       throw new Error("No factory found for node type " + typeId)
@@ -479,7 +483,7 @@ export function Board({
         })
         nwManager.updateWires(wiresToKeep)
         setNodeRects({ ...nodeRects })
-        historyManager.save(nodesToKeep, wiresToKeep)
+        saveHistory(nodesToKeep, wiresToKeep)
       }
       if (e.code === "Escape") {
         nwManager.updateNodes(nodes.map(n => { n.selected = false; return n }))
@@ -543,11 +547,6 @@ export function Board({
       })
     }
   }, [svgRootRef.current])
-
-  // Emit change.
-  useEffect(() => {
-    onChange(nwManager.getNodes(), nwManager.getWires())
-  }, [nwManager.getUpdateId()])
 
   const onInSocketValueChange = useCallback((nodeId: string, index: number, value: InNodeInputValue) => {
     const nodes = nwManager.getNodes()

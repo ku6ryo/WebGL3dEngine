@@ -1,11 +1,11 @@
-import { Node } from "../../Node";
+import { ShaderNode } from "../../ShaderNode";
 import { ShaderDataType } from "../../data_types";
 
 
-export class ColorOutputNode extends Node {
+export class ColorOutputNode extends ShaderNode {
 
   constructor(id: string) {
-    super(id, "ColorOutput", undefined, undefined, true)
+    super(id, "ColorOutput", undefined, true, true)
     this.addInSocket("in0", ShaderDataType.Vector3)
   }
 

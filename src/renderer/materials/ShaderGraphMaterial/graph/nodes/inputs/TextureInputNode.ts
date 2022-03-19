@@ -1,12 +1,12 @@
-import { Node, UniformType } from "../../Node";
+import { ShaderNode } from "../../ShaderNode";
 import { ShaderDataType } from "../../data_types";
 
-export class TextureInputNode extends Node {
+export class TextureInputNode extends ShaderNode {
 
   #value: HTMLImageElement;
 
   constructor(id: string, value: HTMLImageElement) {
-    super(id, "Input_Texture", [UniformType.Sampler2D])
+    super(id, "Input_Texture")
     this.#value = value
     this.setUniformValue(0, value)
     this.addOutSocket("TextureInputNodeOut", ShaderDataType.Sampler2D)

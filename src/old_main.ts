@@ -14,7 +14,7 @@ import { SoapBubbleMaterial } from "./renderer/materials/SoapBubbleMaterial/Soap
 import sampleTexUrl from "./crack512x512.png"
 import { PlaneGeometry } from "./renderer/geometries/PlaneGeometry";
 import { TextureMaterial } from "./renderer/materials/TextureMaterial/TextureMaterial";
-import { Graph } from "./renderer/materials/ShaderGraphMaterial/graph/Graph";
+import { ShaderGraph } from "./renderer/materials/ShaderGraphMaterial/graph/ShaderGraph";
 import { FloatInputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/FloatInputNode";
 import { ColorOutputNode } from "./renderer/materials/ShaderGraphMaterial/graph/nodes/outputs/ColorOutputNode";
 import { Wire } from "./renderer/materials/ShaderGraphMaterial/graph/Wire";
@@ -65,7 +65,7 @@ export async function main() {
   const img = new Image()
   img.src = sampleTexUrl
   img.onload = () => {
-    const g = new Graph()
+    const g = new ShaderGraph()
     const uv0 = new UvInputNode("uv0")
     g.addNode(uv0)
 

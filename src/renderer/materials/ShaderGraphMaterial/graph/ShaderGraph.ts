@@ -1,19 +1,19 @@
-import { AttributeType, Node } from "./Node"
+import { AttributeType, ShaderNode } from "./ShaderNode"
 import { Wire } from "./Wire"
 
-export class Graph {
-  #nodes: Node[] = []
+export class ShaderGraph {
+  #nodes: ShaderNode[] = []
   #wires: Wire[] = []
 
   /**
    * Nodes that are effective. The order is sorted for code generation.
    */
-  #resolvedNodes: Node[] = []
+  #resolvedNodes: ShaderNode[] = []
 
   /**
    * Adds a node to the graph.
    */
-  addNode(node: Node) {
+  addNode(node: ShaderNode) {
     if (this.#nodes.map(n => n.getId()).includes(node.getId())) {
       throw new Error("the same node id already exists : " + node.getId())
     }
@@ -24,11 +24,11 @@ export class Graph {
   /**
    * Gets all nodes in the graph. 
    */
-  getNodes(): Node[] {
+  getNodes(): ShaderNode[] {
     return [...this.#nodes]
   }
 
-  getResolvedNodes(): Node[] {
+  getResolvedNodes(): ShaderNode[] {
     return [...this.#resolvedNodes]
   }
 
@@ -51,14 +51,7 @@ export class Graph {
    * Resolve graph structure. Orders of nodes etc.
    */
   protected resolveGraph() {
-    this.#nodes.forEach(n => {
-      n.getUniforms().forEach((u, i) => {
-        const name = `u${n.getId()}_${i}_${u.type}`
-        n.setUnifromName(i, name)
-      })
-    })
-
-    let outputNode: Node | null = null
+    let outputNode: ShaderNode | null = null
     let outputNodeCount = 0
     this.#nodes.forEach(n => {
       if (n.isOutputNode()) {
@@ -66,20 +59,26 @@ export class Graph {
         outputNodeCount++
       }
     })
+    if (!outputNode) {
+      throw new Error("No output node found")
+    }
     if (outputNodeCount > 1) {
       throw new Error("More than one output node found")
     }
-    if (!outputNode) {
-      return
-    }
 
-    const nodeMap: { [key: string]: Node } = {}
-    const addNodeToMap = (n: Node, order: string) => {
+    const nodeMap: { [key: string]: ShaderNode } = {}
+    const addNodeToMap = (n: ShaderNode, order: string) => {
       nodeMap[order] = n
+      console.log("a")
       n.getInSockets().forEach((s, i) => {
+        const nextOrder = order + Array(i + 1).fill("_")
         const wires = this.#wires.filter(w => {
           return w.getOutSocket() === s
         })
+        console.log("b")
+        console.log(n)
+        console.log(this.#wires)
+        console.log(wires)
         if (wires.length > 1) {
           throw new Error("no wire or in socket has more than 1 wires connected to in socket " + s.getId())
         }
@@ -94,11 +93,11 @@ export class Graph {
         if (!nn) {
           return
         }
-        addNodeToMap(nn, order + Array(i + 1).fill("_"))
+        addNodeToMap(nn, nextOrder)
       }) 
     }
-    addNodeToMap(outputNode as Node, "")
-    const resolvedNodes: Node[] = []
+    addNodeToMap(outputNode as ShaderNode, "")
+    const resolvedNodes: ShaderNode[] = []
     Object.keys(nodeMap).sort((a, b) => {
       return b.length - a.length
     }).forEach(k => {
@@ -112,6 +111,7 @@ export class Graph {
   }
 
   generateVertCode(): string {
+    console.log(this.#resolvedNodes)
     let attributeCode = ""
     let mainCode = ""
     const attributeMap: Map<AttributeType, boolean> = new Map()

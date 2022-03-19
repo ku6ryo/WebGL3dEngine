@@ -1,7 +1,7 @@
-import { NodeProps, WireProps } from "../graph/Board.tsx";
+import { NodeProps, WireProps } from "../graph/Board/types";
 import { ShaderDataType } from "../renderer/materials/ShaderGraphMaterial/graph/data_types";
-import { Graph } from "../renderer/materials/ShaderGraphMaterial/graph/Graph";
-import { Node } from "../renderer/materials/ShaderGraphMaterial/graph/Node";
+import { ShaderGraph } from "../renderer/materials/ShaderGraphMaterial/graph/ShaderGraph";
+import { ShaderNode } from "../renderer/materials/ShaderGraphMaterial/graph/ShaderNode";
 import { FloatInputNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/FloatInputNode";
 import { UvInputNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/UvInputNode";
 import { AddNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/math/AddNode";
@@ -23,10 +23,10 @@ import { CombineNode } from "../renderer/materials/ShaderGraphMaterial/graph/nod
 import { SeparateNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/math/SeparateNode";
 
 
-export function createGraphFromInputs(nodes: NodeProps[], wires: WireProps[]): Graph {
-  const graph = new Graph()
+export function createGraphFromInputs(nodes: NodeProps[], wires: WireProps[]): ShaderGraph {
+  const graph = new ShaderGraph()
   nodes.forEach(n => {
-    let sn: Node | null = null
+    let sn: ShaderNode | null = null
     // Input
     if (n.typeId === NodeTypeId.InputUv) {
       sn = new UvInputNode(n.id)
@@ -37,17 +37,19 @@ export function createGraphFromInputs(nodes: NodeProps[], wires: WireProps[]): G
     if (n.typeId === NodeTypeId.InputFloat) {
       sn = (() => {
         const node = new FloatInputNode(n.id)
-        node.setValue(n.inNodeInputValues[0].float || 0)
+        node.setValue(1)
         return node
       })()
     }
     if (n.typeId === NodeTypeId.InputTexture) {
       sn = (() => {
+        throw new Error("texture input not implemented")
+        /*
         if (n.inNodeInputValues[0].image) {
           return new TextureInputNode(n.id, n.inNodeInputValues[0].image)
         } else {
-          throw new Error("no image")
         }
+        */
       })()
     }
     // Output
@@ -98,15 +100,17 @@ export function createGraphFromInputs(nodes: NodeProps[], wires: WireProps[]): G
     }
   })
   wires.forEach(w => {
-    const node1 = graph.getNodes().find(n => n.getId() === w.nodeId1)
-    const node2 = graph.getNodes().find(n => n.getId() === w.nodeId2)
-    if (node1 && node2) {
+    const inNode = graph.getNodes().find(n => n.getId() === w.inNodeId)
+    const outNode = graph.getNodes().find(n => n.getId() === w.outNodeId)
+    if (inNode && outNode) {
       graph.addWire(
         new Wire(
-          node2.getOutSockets()[w.socketIndex2],
-          node1.getInSockets()[w.socketIndex1],
+          inNode.getOutSockets()[w.inSocketIndex],
+          outNode.getInSockets()[w.outSocketIndex],
         )
       )
+    } else {
+      throw new Error("invalid wire")
     }
   })
   return graph

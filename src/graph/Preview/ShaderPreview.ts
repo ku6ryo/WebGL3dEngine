@@ -5,7 +5,7 @@ import { Renderer } from "../../renderer/Renderer";
 import { Thing } from "../../renderer/Thing";
 import { StandardMaterial } from "../../renderer/materials/StandardMaterial/StandardMaterial";
 import { DirectionalLight } from "../../renderer/lights/DirectionalLight";
-import { Graph } from "../../renderer/materials/ShaderGraphMaterial/graph/Graph";
+import { ShaderGraph } from "../../renderer/materials/ShaderGraphMaterial/graph/ShaderGraph";
 import { ShaderGraphMaterial } from "../../renderer/materials/ShaderGraphMaterial/ShaderGraphMaterial";
 
 export class ShaderPreview {
@@ -47,7 +47,7 @@ export class ShaderPreview {
     return this.#canvas
   }
 
-  update(graph: Graph) {
+  update(graph: ShaderGraph) {
     console.log(graph.generateVertCode())
     console.log(graph.generateFragCode())
     try {

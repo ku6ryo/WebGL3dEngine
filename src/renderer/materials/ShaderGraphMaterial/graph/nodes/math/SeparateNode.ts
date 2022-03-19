@@ -1,7 +1,7 @@
-import { Node } from "../../Node";
+import { ShaderNode } from "../../ShaderNode";
 import { ShaderDataType } from "../../data_types";
 
-export class SeparateNode extends Node {
+export class SeparateNode extends ShaderNode {
 
   constructor(id: string) {
     super(id, "Math_Separate")

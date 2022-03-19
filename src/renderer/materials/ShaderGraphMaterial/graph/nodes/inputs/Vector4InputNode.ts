@@ -1,10 +1,10 @@
 import { Vector4 } from "../../../../../math/Vector4";
 import { createValidNumberLiteral } from "../../utils";
-import { Node } from "../../Node";
+import { ShaderNode } from "../../ShaderNode";
 import { ShaderDataType } from "../../data_types";
 
 
-export class Vector4InputNode extends Node {
+export class Vector4InputNode extends ShaderNode {
 
   #value: Vector4 = new Vector4(0, 0, 0, 0)
 

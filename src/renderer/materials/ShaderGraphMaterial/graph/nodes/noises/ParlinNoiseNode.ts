@@ -1,10 +1,10 @@
-import { Node } from "../../Node";
+import { ShaderNode } from "../../ShaderNode";
 import { ShaderDataType } from "../../data_types";
 
 /**
  * https://github.com/ashima/webgl-noise/blob/master/src/classicnoise2D.glsl
  */
-export class PerlinNoiseNode extends Node {
+export class PerlinNoiseNode extends ShaderNode {
 
   constructor(id: string) {
     super(id, "Math_PerlinNoise")

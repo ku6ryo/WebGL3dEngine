@@ -20,7 +20,9 @@ export const inputFactories = [{
   factory: () => {
     return {
       color: NodeColor.Red,
-      inSockets: [],
+      inSockets: [{
+        label: "time",
+      }],
       outSockets: [{
         label: "Seconds",
       }]

@@ -1,9 +1,9 @@
 import { Vector2 } from "../../../../../math/Vector2";
 import { createValidNumberLiteral } from "../../utils";
-import { Node } from "../../Node";
+import { ShaderNode } from "../../ShaderNode";
 import { ShaderDataType } from "../../data_types";
 
-export class Vector2InputNode extends Node {
+export class Vector2InputNode extends ShaderNode {
 
   #value: Vector2 = new Vector2(0, 0)
 

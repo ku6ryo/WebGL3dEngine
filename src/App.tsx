@@ -4,33 +4,29 @@ import { NodeProps, WireProps } from "./graph/Board/types";
 import { factories } from "./graph_definitions/definitions/factories";
 import { createGraphFromInputs } from "./graph_definitions/createGraphFromInputs";
 import { Preview } from "./graph/Preview";
+import { useState } from "react";
+import { ShaderGraph } from "./renderer/materials/ShaderGraphMaterial/graph/ShaderGraph";
 
-function onChange(nodes: NodeProps[], wires: WireProps[]) {
-  /*
-  if (nodes.length === 0) {
-    return
-  }
-  if (prevNodesCount !== nodes.length || prevWireCount !== wires.length) {
-    prevNodesCount = nodes.length
-    prevWireCount = wires.length
+export const App = () => {
+
+  const [graph, setGraph] = useState<ShaderGraph | null>(null);
+
+  function onChange(nodes: NodeProps[], wires: WireProps[]) {
     try {
+      console.log(nodes)
       const graph = createGraphFromInputs(nodes, wires)
-      preview.update(graph)
+      setGraph(graph)
     } catch (e) {
       console.error(e)
     }
   }
-  */
-}
-
-export const App = () => {
   return (
     <>
       <div className={style.board}>
         <Board factories={factories} onChange={onChange}/>
       </div>
       <div className={style.preview}>
-        <Preview />
+        <Preview graph={graph}/>
       </div>
     </>
   )
