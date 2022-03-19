@@ -24,11 +24,16 @@ export class ShaderGraphProgram extends BasicProgram {
       }
     );
     if (!this.hasCompilationError()) {
+      console.log("gee")
       graph.getNodes().forEach(n => {
-        n.getUniforms().forEach((u) => {
+        n.getUniforms().forEach((u, i) => {
           const name = u.name
           if (!name) {
             throw new Error("Uniform name is not set")
+          }
+          console.log(n)
+          if (n.getInSockets()[i].used()) {
+            return
           }
           if (u.type === ShaderDataType.Sampler2D) {
             this.createTextureLocation(name, 0)

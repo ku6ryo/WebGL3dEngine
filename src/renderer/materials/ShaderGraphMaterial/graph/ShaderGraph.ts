@@ -69,22 +69,19 @@ export class ShaderGraph {
     const nodeMap: { [key: string]: ShaderNode } = {}
     const addNodeToMap = (n: ShaderNode, order: string) => {
       nodeMap[order] = n
-      console.log("a")
       n.getInSockets().forEach((s, i) => {
         const nextOrder = order + Array(i + 1).fill("_")
         const wires = this.#wires.filter(w => {
           return w.getOutSocket() === s
         })
-        console.log("b")
-        console.log(n)
-        console.log(this.#wires)
-        console.log(wires)
         if (wires.length > 1) {
           throw new Error("no wire or in socket has more than 1 wires connected to in socket " + s.getId())
         }
         if (wires.length === 0) {
+          s.markUsed(false)
           return
         }
+        s.markUsed(true)
         const wire = wires[0]
         const inSocket = wire.getInSocket()
         const nn = this.#nodes.find(n => {
@@ -93,6 +90,7 @@ export class ShaderGraph {
         if (!nn) {
           return
         }
+        inSocket.markUsed(true)
         addNodeToMap(nn, nextOrder)
       }) 
     }
@@ -161,7 +159,10 @@ void main() {
       n.getAttributes().forEach(a => {
         attributeMap.set(a, true)
       })
-      n.getUniforms().forEach((u) => {
+      n.getUniforms().forEach((u, i) => {
+        if (n.getInSockets()[i].used()) {
+          return
+        }
         uniformCode += `uniform ${u.type} ${u.name};\n`
       })
       mainCode += n.generateCode()

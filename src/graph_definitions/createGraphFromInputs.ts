@@ -21,6 +21,7 @@ import { SampleTextureNode } from "../renderer/materials/ShaderGraphMaterial/gra
 import { TimeInputNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/inputs/TimeInputNode";
 import { CombineNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/math/CombineNode";
 import { SeparateNode } from "../renderer/materials/ShaderGraphMaterial/graph/nodes/math/SeparateNode";
+import { ShaderGraphProgram } from "../renderer/materials/ShaderGraphMaterial/ShaderGaraphProgram";
 
 
 export function createGraphFromInputs(nodes: NodeProps[], wires: WireProps[]): ShaderGraph {
@@ -113,5 +114,9 @@ export function createGraphFromInputs(nodes: NodeProps[], wires: WireProps[]): S
       throw new Error("invalid wire")
     }
   })
+
+  console.log(graph.generateVertCode())
+  console.log(graph.generateFragCode())
+  new ShaderGraphProgram(document.createElement("canvas").getContext("webgl")!, graph)
   return graph
 }

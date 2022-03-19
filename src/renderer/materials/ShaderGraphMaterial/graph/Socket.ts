@@ -5,6 +5,8 @@ export class Socket {
   #type: ShaderDataType;
   #overriddenVariableName: string | null = null;
 
+  #used = false;
+
   constructor(id: string, type: ShaderDataType) {
     this.#id = id;
     this.#type = type
@@ -20,6 +22,14 @@ export class Socket {
 
   getVeriableName(): string {
     return this.#overriddenVariableName || `${this.#id}_${this.#type}`
+  }
+
+  markUsed(used: boolean) {
+    this.#used = used
+  }
+
+  used() {
+    return this.#used
   }
 
   /**

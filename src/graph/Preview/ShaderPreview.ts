@@ -7,6 +7,7 @@ import { StandardMaterial } from "../../renderer/materials/StandardMaterial/Stan
 import { DirectionalLight } from "../../renderer/lights/DirectionalLight";
 import { ShaderGraph } from "../../renderer/materials/ShaderGraphMaterial/graph/ShaderGraph";
 import { ShaderGraphMaterial } from "../../renderer/materials/ShaderGraphMaterial/ShaderGraphMaterial";
+import { ConeGeometry } from "../../renderer/geometries/ConeGeometry";
 
 export class ShaderPreview {
 
@@ -34,7 +35,8 @@ export class ShaderPreview {
     renderer.addDirectionalLight(new DirectionalLight(new Vector3(1, 1, 1), 1))
 
     const mat = new StandardMaterial()
-    const torus = new Thing(new TorusGeometry(0.5, 50, 100))
+    // const torus = new Thing(new TorusGeometry(0.5, 50, 100))
+    const torus = new Thing(new ConeGeometry(30))
     torus.setMaterial(mat)
     renderer.addThing(torus)
 
