@@ -1,4 +1,4 @@
-import React, { MouseEventHandler, useEffect, useMemo, useRef, useState } from "react";
+import React, { MouseEventHandler, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NodeBox, InSocket, OutSocket, SocketDirection, NodeColor, InNodeInputType, InNodeInputValue } from "../NodeBox";
 import { WireLine } from "../WireLine";
 import style from "./style.module.scss"
@@ -6,6 +6,7 @@ import classnames from "classnames"
 import { HistoryManager } from "./HistoryManager";
 import { NodeProps, WireProps } from "./types"
 import shortUUID from "short-uuid";
+import { NodeWireManager } from "./NodeWireManger";
 
 /**
  * Generates a unique id for nodes and wires.
@@ -108,13 +109,17 @@ export function Board({
   const [drawingWire, setDrawingWire] = useState<DrawingWireStats | null>(null)
   const [draggingNode, setDraggingNode] = useState<DraggingNodeStats | null>(null)
   const [drawingRect, setDrawingRect] = useState<DrawingRectStats | null>(null)
-  const [wires, setWires] = useState<WireProps[]>([])
-  const [nodes, setNodes] = useState<NodeProps[]>([])
-  const [nodeDict, setNodeDict] = useState<{ [id: string]: NodeProps }>({})
-  const [wireDict, setWireDict] = useState<{ [key: string]: WireProps }>({})
+  const [_, setNwUpdate] = useState("")
   const [nodeRects, setNodeRects] = useState<{ [id: string]: Rect }>({})
 
   const historyManager = useMemo(() => new HistoryManager(), [])
+  const nwManager = useMemo(() => {
+    const m = new NodeWireManager()
+    m.setOnUpdate((id) => {
+      setNwUpdate(id)
+    })
+    return m
+  }, [])
 
   const goToPrevHistory = () => {
     const history = historyManager.goBack()
@@ -124,11 +129,12 @@ export function Board({
     }
     const nodes = Object.values(history.nodes)
     const wires = Object.values(history.wires)
-    setNodes(nodes)
-    setWires(wires)
+    nwManager.updateNodes(nodes)
+    nwManager.updateWires(wires)
   }
 
-  const onSocketMouseDown = (id: string, dir: SocketDirection, i: number, x: number, y: number) => {
+  const onSocketMouseDown = useCallback((id: string, dir: SocketDirection, i: number, x: number, y: number) => {
+    const nodes = nwManager.getNodes()
     const node = nodes.find(n => n.id === id)
     if (!node) {
       return
@@ -146,9 +152,10 @@ export function Board({
         movingY: zoomedY
       })
     } else {
+      const wires = nwManager.getWires()
       const existingWire = wires.find(w => w.outNodeId === id && w.outSocketIndex === i)
       if (existingWire) {
-        setWires(wires.filter(w => w !== existingWire))
+        nwManager.updateWires(wires.filter(w => w !== existingWire))
         setDrawingWire({
           startDirection: "out",
           startNodeId: existingWire.inNodeId,
@@ -170,17 +177,20 @@ export function Board({
         })
       }
     }
-  }
-  const onSocketMouseUp = (id: string, dir: SocketDirection, i: number, x: number, y: number) => {
+  }, [board.zoom])
+
+  const onSocketMouseUp = useCallback((id: string, dir: SocketDirection, i: number, x: number, y: number) => {
     if (drawingWire === null || drawingWire.startNodeId === id || drawingWire.startDirection === dir) {
       return
     }
+    const nodes = nwManager.getNodes()
     const node = nodes.find(n => n.id === id)
     if (!node) {
       return
     }
     const zoomedX = x / board.zoom + node.x
     const zoomedY = y / board.zoom + node.y
+    const wires = nwManager.getWires()
     let newWires: WireProps[] = []
     if (drawingWire.startDirection === "in") {
       newWires = [
@@ -216,12 +226,13 @@ export function Board({
         newWires = [...wires, newWire]
       }
     }
-    setWires(newWires)
+    nwManager.updateWires(newWires)
     historyManager.save(nodes, newWires)
     setDrawingWire(null)
-  }
+  }, [board.zoom, drawingWire])
 
-  const onNodeDragStart = (id: string, mouseX: number, mouseY: number) => {
+  const onNodeDragStart = useCallback((id: string, mouseX: number, mouseY: number) => {
+    const nodes = nwManager.getNodes()
     const targetNode = nodes.find(n => n.id === id)
     if (targetNode) {
       // Wheel button
@@ -242,6 +253,7 @@ export function Board({
         nodesToSave[n.id] = {...n}
       })
       const wiresToSave: { [key: string]: WireProps } = {}
+      const wires = nwManager.getWires()
       wires.forEach(n => {
         wiresToSave[n.id] = {...n}
       })
@@ -253,12 +265,12 @@ export function Board({
       })
       const newNodes = [...nodes]
       const newWires = [...wires]
-      setNodes(newNodes)
-      setWires(newWires)
+      nwManager.updateNodes(newNodes)
+      nwManager.updateWires(newWires)
     }
-  }
+  }, [svgRootRef.current])
 
-  const onMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+  const onMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (!svgRootRef.current) {
       return
     }
@@ -281,6 +293,8 @@ export function Board({
       const dMouseY = mouseY - draggingNode.startMouseY
       const savedNodes = draggingNode.nodes
       const savedWires = draggingNode.wires
+      const nodes = nwManager.getNodes()
+      const wires = nwManager.getWires()
       const updatedNodes = nodes.map(n => {
         if (!n.selected) {
           return n
@@ -313,8 +327,8 @@ export function Board({
         return n
       })
       setNodeRects({...nodeRects})
-      setNodes(updatedNodes)
-      setWires([...wires])
+      nwManager.updateNodes(updatedNodes)
+      nwManager.updateWires([...wires])
     }
     if (draggingBoard) {
       const x = draggingBoard.startCenterX - (mouseX - draggingBoard.startMouseX) / board.zoom
@@ -335,8 +349,11 @@ export function Board({
         height: Math.abs(startY - boardY),
       })
     }
-  }
-  const onMouseUp = (e: React.MouseEvent<SVGSVGElement>) => {
+  }, [board.zoom, board.centerX, board.centerY, drawingWire, draggingNode, draggingBoard, drawingRect, svgRootRef.current])
+
+  const onMouseUp = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    const nodes = nwManager.getNodes()
+    const wires = nwManager.getWires()
     setDrawingWire(null)
     if (draggingNode) {
       historyManager.save(nodes, wires)
@@ -356,24 +373,25 @@ export function Board({
         }
         return n
       })
-      setNodes(newNodes)
+      nwManager.updateNodes(newNodes)
     } else if (e.target === svgRootRef.current) {
       const newNodes = nodes.map(n => { n.selected = false; return n })
-      setNodes(newNodes)
+      nwManager.updateNodes(newNodes)
     }
     setDrawingRect(null)
-  }
-  const onMouseEnter = (e: React.MouseEvent<SVGSVGElement>) => {
+  }, [drawingRect, nodeRects, draggingNode])
+  
+  const onMouseEnter = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     setCursorOnBoard(true)
-  }
-  const onMouseLeave = (e: React.MouseEvent<SVGSVGElement>) => {
+  }, [])
+  const onMouseLeave = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     setCursorOnBoard(false)
     setDrawingWire(null)
     setDraggingNode(null)
     setDraggingBoard(null)
     setDrawingRect(null)
-  }
-  const onMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
+  }, [])
+  const onMouseDown = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     // Wheel button
     if (!svgRootRef.current) {
       return
@@ -406,9 +424,9 @@ export function Board({
         height: 0,
       })
     }
-  }
+  }, [board.zoom, board.centerX, board.centerY, board.domWidth, board.domHeight, svgRootRef.current])
 
-  const onNodeResize = (id: string, rect: DOMRect) => {
+  const onNodeResize = useCallback((id: string, rect: DOMRect) => {
     if (!svgRootRef.current) {
       return
     }
@@ -422,12 +440,14 @@ export function Board({
       height: rect.height / board.zoom,
     }
     setNodeRects({ ...nodeRects })
-  }
+  }, [svgRootRef.current, nodeRects])
 
-  const onNodeAdd: MouseEventHandler<HTMLDivElement> = (e) => {
+  const onNodeAdd: MouseEventHandler<HTMLDivElement> = useCallback((e) => {
     const typeId = e.currentTarget.dataset.nodeTypeId
     const f = factories.find(f => f.id === typeId)
     if (f) {
+      const nodes = nwManager.getNodes()
+      const wires = nwManager.getWires()
       const n = f.factory()
       const newNodes = [
         ...nodes,
@@ -444,31 +464,33 @@ export function Board({
         }
       ]
       historyManager.save(newNodes, wires)
-      setNodes(newNodes)
+      nwManager.updateNodes(newNodes)
     } else {
       throw new Error("No factory found for node type " + typeId)
     }
-  }
+  }, [factories, nwManager, board.centerX, board.centerY])
 
   useEffect(() => {
     const keydownListener = (e: KeyboardEvent) => {
+      const nodes = nwManager.getNodes()
+      const wires = nwManager.getWires()
       if (e.code === "Delete" || e.code === "Backspace") {
         const nodesToKeep = nodes.filter(n => !n.selected)
         const nodesToRemove = nodes.map(n => {
           return n
         }).filter(n => n.selected)
-        setNodes(nodesToKeep)
+        nwManager.updateNodes(nodesToKeep)
         const wiresToKeep = wires.filter(w => {
           return !nodesToRemove.find(n => {
             return w.inNodeId === n.id || w.outNodeId === n.id
           })
         })
-        setWires(wiresToKeep)
+        nwManager.updateWires(wiresToKeep)
         setNodeRects({ ...nodeRects })
         historyManager.save(nodesToKeep, wiresToKeep)
       }
       if (e.code === "Escape") {
-        setNodes(nodes.map(n => { n.selected = false; return n }))
+        nwManager.updateNodes(nodes.map(n => { n.selected = false; return n }))
       }
       if (e.code === "KeyZ" && e.ctrlKey) {
         goToPrevHistory()
@@ -478,7 +500,7 @@ export function Board({
     return () => {
       window.removeEventListener("keydown", keydownListener)
     }
-  }, [nodes, wires, svgRootRef.current])
+  }, [svgRootRef.current])
 
   // window resize
   useEffect(() => {
@@ -532,20 +554,28 @@ export function Board({
 
   // Emit change.
   useEffect(() => {
-    onChange(nodes, wires)
-  }, [nodes, wires])
+    onChange(nwManager.getNodes(), nwManager.getWires())
+  }, [nwManager.getUpdateId()])
 
-  const onInSocketValueChange = (nodeId: string, index: number, value: InNodeInputValue) => {
+  const onInSocketValueChange = useCallback((nodeId: string, index: number, value: InNodeInputValue) => {
+    const nodes = nwManager.getNodes()
     const n = nodes.find(n => n.id === nodeId)
     if (n) {
       n.inSockets[index].alternativeValue = value
-      setNodes([...nodes])
+      nwManager.updateNodes([...nodes])
     }
-  }
+  }, [nwManager])
 
   const viewBox = useMemo(() => {
     return `${board.centerX - board.domWidth / 2 / board.zoom} ${board.centerY - board.domHeight / 2 / board.zoom} ${board.domWidth / board.zoom} ${board.domHeight / board.zoom}`
   }, [board])
+
+  const nodes = useMemo(() => {
+    return nwManager.getNodes()
+  }, [nwManager.getUpdateId()])
+  const wires = useMemo(() => {
+    return nwManager.getWires()
+  }, [nwManager.getUpdateId()])
 
   return (
     <div className={style.frame}>
