@@ -1,5 +1,5 @@
 import React, { MouseEventHandler, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { NodeBox, InSocket, OutSocket, SocketDirection, NodeColor, InNodeInputType, InNodeInputValue } from "../NodeBox";
+import { NodeBox, InSocket, OutSocket, SocketDirection, NodeColor, InNodeInputValue } from "../NodeBox";
 import { WireLine } from "../WireLine";
 import style from "./style.module.scss"
 import classnames from "classnames"
@@ -134,11 +134,7 @@ export function Board({
   }
 
   const onSocketMouseDown = useCallback((id: string, dir: SocketDirection, i: number, x: number, y: number) => {
-    const nodes = nwManager.getNodes()
-    const node = nodes.find(n => n.id === id)
-    if (!node) {
-      return
-    }
+    const node = nwManager.getNode(id)
     const zoomedX = x / board.zoom + node.x
     const zoomedY = y / board.zoom + node.y
     if (dir === "out") {
@@ -183,11 +179,7 @@ export function Board({
     if (drawingWire === null || drawingWire.startNodeId === id || drawingWire.startDirection === dir) {
       return
     }
-    const nodes = nwManager.getNodes()
-    const node = nodes.find(n => n.id === id)
-    if (!node) {
-      return
-    }
+    const node = nwManager.getNode(id)
     const zoomedX = x / board.zoom + node.x
     const zoomedY = y / board.zoom + node.y
     const wires = nwManager.getWires()
@@ -227,7 +219,7 @@ export function Board({
       }
     }
     nwManager.updateWires(newWires)
-    historyManager.save(nodes, newWires)
+    historyManager.save(nwManager.getNodes(), newWires)
     setDrawingWire(null)
   }, [board.zoom, drawingWire])
 
@@ -566,10 +558,10 @@ export function Board({
     }
   }, [nwManager])
 
+  // Preparing for rendering.
   const viewBox = useMemo(() => {
     return `${board.centerX - board.domWidth / 2 / board.zoom} ${board.centerY - board.domHeight / 2 / board.zoom} ${board.domWidth / board.zoom} ${board.domHeight / board.zoom}`
   }, [board])
-
   const nodes = useMemo(() => {
     return nwManager.getNodes()
   }, [nwManager.getUpdateId()])
