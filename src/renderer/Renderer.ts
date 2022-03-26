@@ -1,47 +1,46 @@
-import { Camera } from "./Camera"
-import { Thing } from "./Thing"
-import { DirectionalLight } from "./lights/DirectionalLight"
+import { Camera } from './Camera';
+import { Thing } from './Thing';
+import { DirectionalLight } from './lights/DirectionalLight';
 
 export class Renderer {
-
-  #canvas: HTMLCanvasElement
-  #things: Thing[] = []
-  #directionalLights: DirectionalLight[] = []
+  #canvas: HTMLCanvasElement;
+  #things: Thing[] = [];
+  #directionalLights: DirectionalLight[] = [];
 
   constructor() {
-    this.#canvas = document.createElement("canvas")
+    this.#canvas = document.createElement('canvas');
   }
 
   getCanvas() {
-    return this.#canvas
+    return this.#canvas;
   }
 
   private getContext() {
-    const glContext = this.#canvas.getContext("webgl")
+    const glContext = this.#canvas.getContext('webgl');
     if (!glContext) {
-      throw new Error("WebGL is not supported")
+      throw new Error('WebGL is not supported');
     }
-    return glContext
+    return glContext;
   }
 
   addThing(t: Thing) {
-    this.#things.push(t)
+    this.#things.push(t);
   }
 
   getThings() {
-    return [...this.#things]
+    return [...this.#things];
   }
 
   addDirectionalLight(light: DirectionalLight) {
-    this.#directionalLights.push(light)
+    this.#directionalLights.push(light);
   }
 
   render(camera: Camera) {
-    const glContext = this.getContext()
+    const glContext = this.getContext();
     glContext.viewport(0, 0, glContext.canvas.width, glContext.canvas.height);
-    glContext.frontFace(glContext.CCW)
-    glContext.enable(glContext.CULL_FACE)
-    glContext.cullFace(glContext.BACK)
+    glContext.frontFace(glContext.CCW);
+    glContext.enable(glContext.CULL_FACE);
+    glContext.cullFace(glContext.BACK);
     glContext.enable(glContext.DEPTH_TEST);
     glContext.depthFunc(glContext.LEQUAL);
     glContext.enable(glContext.BLEND);
@@ -51,22 +50,21 @@ export class Renderer {
     glContext.clear(glContext.COLOR_BUFFER_BIT);
 
     const things = this.getThings().sort((a, b) => {
-      const at = a.getMaterial().useTransparency() ? 1 : 0 
-      const bt = b.getMaterial().useTransparency() ? 1 : 0
-      return at - bt < 0 ? -1 : 1
-    })
+      const at = a.getMaterial().useTransparency() ? 1 : 0;
+      const bt = b.getMaterial().useTransparency() ? 1 : 0;
+      return at - bt < 0 ? -1 : 1;
+    });
 
-    things.forEach(t => {
-      const m = t.getMaterial()
+    things.forEach((t) => {
+      const m = t.getMaterial();
       try {
-        const p = m.getProgramForRender(glContext)
+        const p = m.getProgramForRender(glContext);
         if (!p.hasCompilationError()) {
-          p.draw(camera, t, this.#directionalLights)
+          p.draw(camera, t, this.#directionalLights);
         }
       } catch (e) {
-        console.error("failed to draw")
+        console.error('failed to draw');
       }
-    })
+    });
   }
-
 }

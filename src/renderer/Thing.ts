@@ -1,58 +1,57 @@
-import { Geometry } from "./geometries/Geometry"
-import { Material } from "./materials/Material"
-import { StandardMaterial } from "./materials/StandardMaterial/StandardMaterial"
-import { Vector3 } from "./math/Vector3"
+import { Geometry } from './geometries/Geometry';
+import { Material } from './materials/Material';
+import { StandardMaterial } from './materials/StandardMaterial/StandardMaterial';
+import { Vector3 } from './math/Vector3';
 
 export class Thing {
+  #geometry: Geometry;
+  #material: Material = new StandardMaterial();
 
-  #geometry: Geometry
-  #material: Material = new StandardMaterial()
-
-  #position: Vector3 = new Vector3(0, 0, 0)
-  #scale: Vector3 = new Vector3(1, 1, 1)
-  #rotation: Vector3 = new Vector3(0, 0, 0)
+  #position: Vector3 = new Vector3(0, 0, 0);
+  #scale: Vector3 = new Vector3(1, 1, 1);
+  #rotation: Vector3 = new Vector3(0, 0, 0);
 
   constructor(geometry: Geometry) {
-    this.#geometry = geometry
+    this.#geometry = geometry;
   }
 
   getGeometry() {
-    return this.#geometry
+    return this.#geometry;
   }
 
   setGeometry(g: Geometry) {
-    this.#geometry = g
+    this.#geometry = g;
   }
 
   getMaterial() {
-    return this.#material
+    return this.#material;
   }
 
   setMaterial(m: Material) {
-    this.#material = m
+    this.#material = m;
   }
 
   setRotation(rotation: Vector3) {
-    this.#rotation = rotation
+    this.#rotation = rotation;
   }
 
   getRotation() {
-    return this.#rotation
+    return this.#rotation;
   }
 
   getScale() {
-    return this.#scale
+    return this.#scale;
   }
 
   setScale(scale: Vector3) {
-    this.#scale = scale
+    this.#scale = scale;
   }
 
   getPosition() {
-    return this.#position
+    return this.#position;
   }
 
   setPosition(position: Vector3) {
-    this.#position = position
+    this.#position = position;
   }
 }

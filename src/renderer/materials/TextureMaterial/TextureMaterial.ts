@@ -1,19 +1,18 @@
-import { Material } from "../Material";
-import { getProgram } from "./TextureProgram"
+import { Material } from '../Material';
+import { getProgram } from './TextureProgram';
 
 export class TextureMaterial extends Material {
-
-  #texture: HTMLImageElement | null = null
+  #texture: HTMLImageElement | null = null;
 
   setTexture(tex: HTMLImageElement) {
-    this.#texture = tex
+    this.#texture = tex;
   }
 
   getProgramForRender(gl: WebGLRenderingContext) {
-    const p = getProgram(gl)
+    const p = getProgram(gl);
     if (this.#texture) {
-      p.setTexture(this.#texture)
+      p.setTexture(this.#texture);
     }
-    return p
+    return p;
   }
 }

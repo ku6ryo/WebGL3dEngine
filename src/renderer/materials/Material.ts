@@ -1,12 +1,11 @@
-import { Program } from "./Program"
+import { Program } from './Program';
 
 export abstract class Material {
-
   constructor() {}
 
   useTransparency() {
-    return false
+    return false;
   }
 
-  abstract getProgramForRender(context: WebGLRenderingContext): Program
+  abstract getProgramForRender(context: WebGLRenderingContext): Program;
 }
